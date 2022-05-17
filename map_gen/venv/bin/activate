@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/marcos/Projects/python/map_gen/venv"
+VIRTUAL_ENV="/home/marcos/GitHub/python-codes/map_gen/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
