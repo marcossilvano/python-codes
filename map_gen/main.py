@@ -71,6 +71,20 @@ def print_and_wait():
     input("Press to continue...")
 
 
+def is_dead_end(p: Point, map: np.ndarray) -> bool:
+    if map[p.y][p.x] != ' ':
+        return False
+
+    # check nearby cells:    up               down           left             right
+    nearby_cells: list = [p + Point(-1,0), p + Point(1,0), p + Point(0,-1), p + Point(0,1)]
+
+    walls_count: int = 0
+    for nearby in nearby_cells:
+        walls_count += int(map[nearby.y][nearby.x] == 'X')
+    
+    return walls_count >= 3
+
+
 def gen_map(p: Point, map: np.ndarray):
     map[p.y][p.x] = ' '
     print_and_wait()
@@ -83,51 +97,24 @@ def gen_map(p: Point, map: np.ndarray):
         if try_direction(p, dir, map):
             gen_map(p + dir, map)
 
-    
     # detect a dead end and, if so, put a chest ('B')
-    walls_count: int = 0
-    dir_list: list = [Point(-1,0), Point(1,0), Point(0,-1), Point(0,1)]
-    for dir in dir_list:
-        new_pos: Point = Point(p.y + dir.y, p.x + dir.x)
-        walls_count += int(get_cell(new_pos, map) == 'X')
-    
-    print(walls_count)
-    if walls_count >= 3:
+    if is_dead_end(p, map):
         map[p.y][p.x] = 'B'
 
-'''
-def gen_map_old(y: int, x: int, map: np.ndarray):
-
-    map[y][x] = ' '
-    cs.clear_screen()
-    print_map(map)
-    input("Press to continue...")
-
-    if y-2 > 0:
-        if map[y-2][x] == 'X':  # up
-            map[y-1][x] = ' '
-            gen_map(y-2, x, map)
-
-    if x+2 < map.shape[1]-1:
-        if map[y][x+2] == 'X':  # right
-            map[y][x+1] = ' '
-            gen_map(y, x+2, map)
-
-    if x-2 > 0:
-        if map[y][x-2] == 'X':  # left
-            map[y][x-1] = ' '
-            gen_map(y, x-2, map)
-
-    if y+2 < map.shape[0]-1:
-        if map[y+2][x] == 'X':  # down
-            map[y+1][x] = ' '
-            gen_map(y+2, x, map)
-'''
 
 if __name__ == '__main__':
     #cs.print_colors(30)
 
-    map = np.full((19, 19), 'X')
+    dim: int = 31
+    map = np.full((dim, dim), 'X')
 
-    gen_map(Point(9,9), map)
-#    print_and_wait()
+    gen_map(Point(dim//2, dim//2), map)
+
+    '''
+    for y in range(map.shape[0]):
+        for x in range(map.shape[1]):
+            if is_dead_end(Point(y,x), map):
+                map[y][x] = 'B'
+    '''
+
+    #print_and_wait()
