@@ -87,7 +87,7 @@ def is_dead_end(p: Point, map: np.ndarray) -> bool:
 
 def gen_map(p: Point, map: np.ndarray):
     map[p.y][p.x] = ' '
-    print_and_wait()
+    #print_and_wait()
 
     # directions:         left          right        up        down
     dir_list: list = [Point(-2,0), Point(2,0), Point(0,-2), Point(0,2)]
@@ -117,4 +117,4 @@ if __name__ == '__main__':
                 map[y][x] = 'B'
     '''
 
-    #print_and_wait()
+    print_and_wait()
