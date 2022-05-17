@@ -42,13 +42,25 @@ def print_map(map):
         print()
 
 
+# Returns the character at given position or 'N' if the position is out of map bounds
+def get_cell(pos: Point, map: np.array):
+    if pos.y > 0 and pos.y < map.shape[0]-1 and pos.x > 0 and pos.x < map.shape[1]-1:
+        return map[pos.y][pos.x]
+    else:
+        return 'N'
+
+
 def try_direction(pos: Point, dir: Point, map: np.ndarray) -> bool:
     new_pos = pos + dir
     
-    if new_pos.y > 0 and new_pos.y < map.shape[0]-1 and new_pos.x > 0 and new_pos.x < map.shape[1]-1:
-        if map[new_pos.y][new_pos.x] == 'X':
-            map[pos.y + dir.y//2][pos.x + dir.x//2] = ' ' # derruba parede
-            return True
+    if get_cell(new_pos, map) == 'X':
+        map[pos.y + dir.y//2][pos.x + dir.x//2] = ' ' # derruba parede
+        return True
+
+#    if new_pos.y > 0 and new_pos.y < map.shape[0]-1 and new_pos.x > 0 and new_pos.x < map.shape[1]-1:
+#        if map[new_pos.y][new_pos.x] == 'X':
+#            map[pos.y + dir.y//2][pos.x + dir.x//2] = ' ' # derruba parede
+#            return True
     
     return False
 
@@ -71,8 +83,19 @@ def gen_map(p: Point, map: np.ndarray):
         if try_direction(p, dir, map):
             gen_map(p + dir, map)
 
-    #map[p.y][p.x] = 'B'
+    
+    # detect a dead end and, if so, put a chest ('B')
+    walls_count: int = 0
+    dir_list: list = [Point(-1,0), Point(1,0), Point(0,-1), Point(0,1)]
+    for dir in dir_list:
+        new_pos: Point = Point(p.y + dir.y, p.x + dir.x)
+        walls_count += int(get_cell(new_pos, map) == 'X')
+    
+    print(walls_count)
+    if walls_count >= 3:
+        map[p.y][p.x] = 'B'
 
+'''
 def gen_map_old(y: int, x: int, map: np.ndarray):
 
     map[y][x] = ' '
@@ -99,7 +122,7 @@ def gen_map_old(y: int, x: int, map: np.ndarray):
         if map[y+2][x] == 'X':  # down
             map[y+1][x] = ' '
             gen_map(y+2, x, map)
-
+'''
 
 if __name__ == '__main__':
     #cs.print_colors(30)
