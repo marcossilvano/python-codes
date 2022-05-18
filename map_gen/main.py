@@ -7,33 +7,31 @@ import numpy as np
 import colors as cs
 import random
 
-class Point:
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
+class Cell:
+    def __init__(self, row: int, col: int, dist: int = 0):
+        self.row = row
+        self.col = col
+        self.dist = dist
 
     def __str__(self) -> str:
-        return '(x:' + str(self.x) + ', y:' + str(self.y) + ')'
+        return '{row:' + str(self.row) + ', col:' + str(self.col) + ', dist: ' + str(self.dist) + '}'
 
     def __repr__(self) -> str:
         return self.__str__(self)
 
     def __add__(self, other) -> object:
-        p = Point(self.x, self.y)
-        p.x += other.x
-        p.y += other.y
+        p = Cell(self.row, self.col)
+        p.row += other.row
+        p.col += other.col
         return p
 
     def __getitem__(self, index) -> int:
         if index == 0:
-            return self.y
+            return self.row
         if index == 1:
-            return self.x
-
-
-class Cell(NamedTuple):
-    dist: int
-    pos: Point
+            return self.col
+        if index == 2:
+            return self.dist
     
 
 def print_map(map):
@@ -52,19 +50,26 @@ def print_map(map):
         print()
 
 
+def print_map_codes(map):
+    for line in map:
+        for ch in line:
+            print(ch, end='')
+        print()
+
+
 # Returns the character at given position or 'N' if the position is out of map bounds
-def get_cell(pos: Point, map: np.array):
-    if pos.y > 0 and pos.y < map.shape[0]-1 and pos.x > 0 and pos.x < map.shape[1]-1:
-        return map[pos.y][pos.x]
+def get_cell(pos: Cell, map: np.array):
+    if pos.row > 0 and pos.row < map.shape[0]-1 and pos.col > 0 and pos.col < map.shape[1]-1:
+        return map[pos.row, pos.col]
     else:
         return 'N'
 
 
-def try_direction(pos: Point, dir: Point, map: np.ndarray) -> bool:
-    new_pos: Point = pos + dir
+def try_direction(pos: Cell, dir: Cell, map: np.ndarray) -> bool:
+    new_pos: Cell = pos + dir
     
     if get_cell(new_pos, map) == 'X':
-        map[pos.y + dir.y//2][pos.x + dir.x//2] = ' ' # derruba parede
+        map[pos.row + dir.row//2, pos.col + dir.col//2] = ' ' # derruba parede
         return True
 
     return False
@@ -73,32 +78,33 @@ def try_direction(pos: Point, dir: Point, map: np.ndarray) -> bool:
 def print_and_wait() -> None:
     cs.clear_screen()
     print_map(map)
+    #print_map_codes(map)
     input("Press to continue...")
 
 
-def is_dead_end(p: Point, map: np.ndarray) -> bool:
-    if map[p.y][p.x] != ' ':
+def is_dead_end(p: Cell, map: np.ndarray) -> bool:
+    if map[p.row, p.col] != ' ':
         return False
 
-    # check nearby cells:    up               down           left             right
-    nearby_cells: list = [p + Point(-1,0), p + Point(1,0), p + Point(0,-1), p + Point(0,1)]
+    # check nearby cells:       up             down           left             right
+    nearby_cells: list = [p + Cell(-1,0), p + Cell(1,0), p + Cell(0,-1), p + Cell(0,1)]
 
     walls_count: int = 0
     for nearby in nearby_cells:
-        walls_count += int(map[nearby.y][nearby.x] == 'X')
+        walls_count += int(map[nearby.row, nearby.col] == 'X')
     
     return walls_count >= 3
 
 
-def gen_map(p: Point, map: np.ndarray, dist: int) -> Cell:
-    map[p.y][p.x] = ' '
+def gen_map(p: Cell, map: np.ndarray, dist: int) -> Cell:
+    map[p.row, p.col] = ' '
     #print_and_wait()
 
     # directions:         left          right        up        down
-    dir_list: list = [Point(-2,0), Point(2,0), Point(0,-2), Point(0,2)]
+    dir_list: list = [Cell(-2,0), Cell(2,0), Cell(0,-2), Cell(0,2)]
     random.shuffle(dir_list)
 
-    max_dist: Cell = Cell(dist, p)
+    max_dist: Cell = Cell(p.row, p.col, dist)
     for dir in dir_list:
         if try_direction(p, dir, map):
             path_dist: Cell = gen_map(p + dir, map, dist+1)
@@ -106,7 +112,8 @@ def gen_map(p: Point, map: np.ndarray, dist: int) -> Cell:
 
     # detect a dead end and, if so, put a chest ('B')
     if is_dead_end(p, map):
-        map[p.y][p.x] = 'C'
+        #if random.randint(1,3) >= 3:
+        map[p.row, p.col] = 'C'
 
     return max_dist
 
@@ -114,22 +121,15 @@ def gen_map(p: Point, map: np.ndarray, dist: int) -> Cell:
 if __name__ == '__main__':
     #cs.print_colors(30)
 
-    dim: int = 31
-    map = np.full((dim, dim), 'X')
+    map_rows: int = 25
+    map_cols: int = 41
+    map = np.full((map_rows, map_cols), 'X')
 
-    start_pos: Point = Point( random.randrange(1, dim, 2), random.randrange(1, dim, 2) )
-    exit_cell: Cell = gen_map(start_pos, map, 0)
+    pos_start: Cell = Cell( random.randrange(1, map_rows, 2), random.randrange(1, map_cols, 2) )
+    pos_exit: Cell = gen_map(pos_start, map, 0)
 
-    '''
-    for y in range(map.shape[0]):
-        for x in range(map.shape[1]):
-            if is_dead_end(Point(y,x), map):
-                map[y][x] = 'B'
-    '''
-
-    #map[dim//2, dim//2] = 'S'
-    map[start_pos.y, start_pos.x] = 'S'
-    map[exit_cell.pos.y][exit_cell.pos.x] = 'E'
+    map[pos_start.row, pos_start.col] = 'S'
+    map[pos_exit.row, pos_exit.col] = 'E'
 
     print_and_wait()
-    print('Max dist: %d at {%d, %d}' % (exit_cell.dist, exit_cell.pos.y, exit_cell.pos.x))
+    #print('Max dist: %d at {%d, %d}' % (pos_exit.dist, pos_exit.col, pos_exit.row))
