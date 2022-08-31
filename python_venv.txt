@@ -1,0 +1,16 @@
+-------------------------------------------
+
+Criar:
+  virtualenv -p /usr/bin/python3 venv
+
+Ativar:
+  source venv/bin/activate
+
+-------------------------------------------
+
+pip install flask
+
+-------------------------------------------
+
+Flask 2.0.3
+FLASK_ENV=development flask run
