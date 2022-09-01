@@ -1,5 +1,7 @@
 import sqlite3
 import random
+import json
+import collections
 
 MAX_SCORES_PER_GAME = 50
 
@@ -26,6 +28,7 @@ def open_or_create(reset: bool):
             game_id INTEGER NOT NULL,
             nick    TEXT    NOT NULL,
             score   INTEGER NOT NULL,
+            date    TEXT    NOT NULL,
 
             FOREIGN KEY (game_id)
                 REFERENCES games (id)
@@ -48,7 +51,7 @@ def commit_and_close(con):
 
 def save_score(game_id, nick, score):
     con, cur = get_connection()
-    cur.execute("INSERT INTO game_scores VALUES (NULL, %d, '%s', %d)" % (game_id, nick, score))
+    cur.execute("INSERT INTO game_scores VALUES (NULL, %d, '%s', %d, datetime('now','localtime'))" % (game_id, nick, score, ))
     con.commit()
 
     cur.execute("SELECT COUNT(*) FROM game_scores")
@@ -74,6 +77,26 @@ def is_highscore(game_id, score):
     
     return score > res[0]
 
+#    dict_list = []
+#    for (name, score, dat) in tup_list:
+#        entry = {}
+#        entry['name'] = name
+#        entry['score']= score
+#        entry['date'] = dat
+#        dict_list.append(entry)
+
+
+def retrieve_leaderboard(game_id):
+    con, cur = get_connection()
+
+    cur.execute("SELECT nick, score, date FROM game_scores WHERE game_id=%d" % (game_id))
+    tup_list = cur.fetchall()
+
+    dict_list = [{'name': name, 'score': score, 'date': dat} for name, score, dat in tup_list]
+
+    con.close()
+    return dict_list
+
 
 def test_db():
     con = sqlite3.connect("scores.db")
@@ -85,10 +108,10 @@ def test_db():
     cur.execute("INSERT INTO games VALUES ('%d','Duke Nukum II')" % (2))
     con.commit()
     
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'john-doe', 485)")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'jake', 485)")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'joanna_dark', 95685)")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'bruce_jane', 195685)")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'john-doe', 485, datetime('now','localtime'))")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'jake', 485, datetime('now','localtime'))")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'joanna_dark', 95685, datetime('now','localtime'))")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'bruce_jane', 195685, datetime('now','localtime'))")
     con.commit()
 
     res = cur.execute("SELECT name FROM sqlite_master")
@@ -102,5 +125,6 @@ def test_db():
 if __name__ == "__main__":
     open_or_create(True)
     test_db()
-    save_score(1, 'foo-bar', 1234)
+#    save_score(1, 'foo-bar', 1234)
     print(is_highscore(1, 65))
+    retrieve_leaderboard(1)
