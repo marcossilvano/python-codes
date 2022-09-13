@@ -1,5 +1,16 @@
 -------------------------------------------
 
+JSON http response format
+https://github.com/omniti-labs/jsend
+
+Install Flask on Ubuntu:
+https://linuxize.com/post/how-to-install-flask-on-ubuntu-20-04/
+
+Add directory to PATH:
+https://linuxize.com/post/how-to-add-directory-to-path-in-linux/
+
+-------------------------------------------
+
 Criar:
   virtualenv -p /usr/bin/python3 venv
 
@@ -9,6 +20,13 @@ Ativar:
 -------------------------------------------
 
 pip install flask
+
+-------------------------------------------
+
+If Flask is not on PATH:
+
+echo $PATH                                       (check path)
+export PATH="/home/marcos/.local/bin:$PATH"      (add Flask to PATH)
 
 -------------------------------------------
 
