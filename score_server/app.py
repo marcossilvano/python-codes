@@ -5,14 +5,19 @@ from data_base import *
 
 app = Flask(__name__)
 
+
 @app.route("/send_score/<int:game_id>/<string:nick>/<int:score>")
 def send_score(game_id: int, nick: str, score: int) -> None:
     if is_highscore(game_id, score):
         save_score(game_id, nick, score)
-        return "score saved"
+        return json.dumps({
+            'status': 'success'
+        })
     else:
-        return "not a highscore"
-
+        return json.dumps({
+            'status': 'fail',
+            'data': 'is not highscore'
+        })
 
 @app.route("/get_leaderboard/<int:game_id>")
 def get_leaderboard(game_id: int):
