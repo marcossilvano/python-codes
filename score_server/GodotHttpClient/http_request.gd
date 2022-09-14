@@ -12,7 +12,6 @@ var _url: String
 func _ready():
 	$HTTPRequest.connect("request_completed", self, "_on_request_completed")
 
-	
 
 func _on_request_completed(result, response_code, headers, body):
 	response.text = 'url: ' + _url + '\ncode: ' + str(response_code) + '\nbody: ' + body.get_string_from_utf8()
@@ -41,10 +40,33 @@ func _on_request_completed(result, response_code, headers, body):
 
 # send score
 func _on_ButtonSendScore_pressed() -> void:
+	#_send_score_GET()
+	_send_score_POST()
 	
+	
+func _send_score_GET() -> void:
 	#/send_score/<int:game_id>/<string:nick>/<int:score>
 	var nick: String = send_nick.text.replace(' ', '%20')
 	_url = address.text + '/send_score/' + send_game_id.text + '/' + nick + '/' + send_score.text
 	
 	print(name + ': send_score ' + _url)
 	$HTTPRequest.request(_url)
+	
+	
+func _send_score_POST() -> void:
+#func _make_post_request(url, data_to_send, use_ssl):
+	#/send_score/<int:game_id>/<string:nick>/<int:score>
+	var nick: String = send_nick.text.replace(' ', '%20')
+	_url = address.text + '/send_score'
+
+	# Convert data to json string:
+	var json_str: String = JSON.print({
+		"game_id": int(send_game_id.text),
+		"nick": nick,
+		"score": int(send_score.text)
+	})
+	print(json_str)
+	# Add 'Content-Type' header:
+	var headers = ["Content-Type: application/json"]
+	
+	$HTTPRequest.request(_url, headers, false, HTTPClient.METHOD_POST, json_str)	
