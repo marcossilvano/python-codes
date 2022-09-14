@@ -23,6 +23,16 @@ pip install flask
 
 -------------------------------------------
 
+Na máquina que já tiver o venv com os pacotes instalados:
+pip freeze > requirements.txt       (arquivo com versões do venv atual)
+
+Quando for usar em outra máquina:
+pip -r requirements.txt             (instala exatamente aqueles pacotes)
+
+OBS: desta forma, não precisa subir o venv para o repositório
+
+-------------------------------------------
+
 If Flask is not on PATH:
 
 echo $PATH                                       (check path)
@@ -31,4 +41,8 @@ export PATH="/home/marcos/.local/bin:$PATH"      (add Flask to PATH)
 -------------------------------------------
 
 Flask 2.0.3
-FLASK_ENV=development flask run
+$ FLASK_ENV=development flask run
+
+Flash 2.2.X
+$ flask --app app run
+$ flask --app app --debug run
