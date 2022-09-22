@@ -1,0 +1,55 @@
+[gd_scene format=2]
+
+[node name="HBoxContainer" type="HBoxContainer"]
+margin_right = 1024.0
+margin_bottom = 48.0
+
+[node name="1" type="Label" parent="."]
+margin_top = 17.0
+margin_right = 201.0
+margin_bottom = 31.0
+size_flags_horizontal = 3
+text = "Position"
+
+[node name="2" type="Label" parent="."]
+margin_left = 205.0
+margin_top = 17.0
+margin_right = 407.0
+margin_bottom = 31.0
+size_flags_horizontal = 3
+text = "Player"
+
+[node name="3" type="Label" parent="."]
+margin_left = 411.0
+margin_top = 17.0
+margin_right = 612.0
+margin_bottom = 31.0
+size_flags_horizontal = 3
+text = "Score"
+
+[node name="4" type="Label" parent="."]
+margin_left = 616.0
+margin_top = 17.0
+margin_right = 818.0
+margin_bottom = 31.0
+size_flags_horizontal = 3
+text = "Time stamp"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+margin_left = 822.0
+margin_right = 1024.0
+margin_bottom = 48.0
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer"]
+margin_left = 80.0
+margin_right = 122.0
+margin_bottom = 48.0
+alignment = 1
+
+[node name="Button" type="Button" parent="HBoxContainer/VBoxContainer"]
+margin_top = 14.0
+margin_right = 42.0
+margin_bottom = 34.0
+text = "View"
