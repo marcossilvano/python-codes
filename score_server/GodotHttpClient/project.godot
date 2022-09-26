@@ -8,6 +8,22 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Control",
+"class": "HighscoreEntry",
+"language": "GDScript",
+"path": "res://leaderboard/HighscoreEntry.gd"
+}, {
+"base": "VBoxContainer",
+"class": "HighscoreTable",
+"language": "GDScript",
+"path": "res://leaderboard/HighscoreTable.gd"
+} ]
+_global_script_class_icons={
+"HighscoreEntry": "",
+"HighscoreTable": ""
+}
+
 [application]
 
 config/name="GodotHttpClient"
