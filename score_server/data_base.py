@@ -89,7 +89,12 @@ def is_highscore(game_id, score):
 def retrieve_leaderboard(game_id):
     con, cur = get_connection()
 
-    cur.execute("SELECT nick, score, date FROM game_scores WHERE game_id=%d" % (game_id))
+    cur.execute("""
+        SELECT nick, score, date
+            FROM game_scores
+            WHERE game_id=%d 
+            ORDER BY score DESC""" % (game_id))
+
     tup_list = cur.fetchall()
 
     dict_list = [{'name': name, 'score': score, 'date': dat} for name, score, dat in tup_list]
@@ -108,10 +113,10 @@ def test_db():
     cur.execute("INSERT INTO games VALUES ('%d','Duke Nukum II')" % (2))
     con.commit()
     
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'john-doe', 485, datetime('now','localtime'))")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'jake', 485, datetime('now','localtime'))")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'joanna_dark', 95685, datetime('now','localtime'))")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'bruce_jane', 195685, datetime('now','localtime'))")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JOH', 485, datetime('now','localtime'))")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JAK', 485, datetime('now','localtime'))")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JDK', 95685, datetime('now','localtime'))")
+    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'BRU', 195685, datetime('now','localtime'))")
     con.commit()
 
     res = cur.execute("SELECT name FROM sqlite_master")
