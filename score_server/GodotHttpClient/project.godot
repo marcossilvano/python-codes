@@ -27,7 +27,7 @@ _global_script_class_icons={
 [application]
 
 config/name="GodotHttpClient"
-run/main_scene="res://main.tscn"
+run/main_scene="res://leaderboard/MainScene.tscn"
 config/icon="res://icon.png"
 
 [display]

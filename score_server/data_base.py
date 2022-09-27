@@ -113,10 +113,16 @@ def test_db():
     cur.execute("INSERT INTO games VALUES ('%d','Duke Nukum II')" % (2))
     con.commit()
     
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JOH', 485, datetime('now','localtime'))")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JAK', 485, datetime('now','localtime'))")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JDK', 95685, datetime('now','localtime'))")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'BRU', 195685, datetime('now','localtime'))")
+    for i in range(1,50):
+        cur.execute("""
+            INSERT INTO game_scores 
+                VALUES (NULL, 1, %s, %d, datetime('now','localtime'))
+        """ % ("'MAC'", random.randrange(500, 50000)))
+        
+    #cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JOH', 485, datetime('now','localtime'))")
+    #cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JAK', 485, datetime('now','localtime'))")
+    #cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'JDK', 95685, datetime('now','localtime'))")
+    #cur.execute("INSERT INTO game_scores VALUES (NULL, 1, 'BRU', 195685, datetime('now','localtime'))")
     con.commit()
 
     res = cur.execute("SELECT name FROM sqlite_master")
