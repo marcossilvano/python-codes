@@ -31,9 +31,10 @@ def send_score_GET(game_id: int, nick: str, score: int):
     score = int(score)
 
     if is_highscore(game_id, score):
-        save_score(game_id, nick, score)
+        last_insert_row = save_score(game_id, nick, score)
         return json.dumps({
-            'status': 'success'
+            'status': 'success',
+            'data': str(last_insert_row)
         })
     else:
         return json.dumps({

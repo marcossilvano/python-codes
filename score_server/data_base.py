@@ -51,15 +51,29 @@ def commit_and_close(con):
 
 def save_score(game_id, nick, score):
     con, cur = get_connection()
+    #cur.execute("BEGIN TRANSACTION")
     cur.execute("INSERT INTO game_scores VALUES (NULL, %d, '%s', %d, datetime('now','localtime'))" % (game_id, nick, score, ))
+    cur.execute("SELECT last_insert_rowid()")
+    res = cur.fetchone()
     con.commit()
+    #cur.execute("COMMIT")
+    
+    last_insert_id: int = res[0]
 
+    # remove row with smaller score if table size exceeds MAX_SCORE_PER_GAME
     cur.execute("SELECT COUNT(*) FROM game_scores")
     res = cur.fetchone()
     if res[0] > MAX_SCORES_PER_GAME:
         cur.execute("DELETE FROM game_scores WHERE score = (SELECT MIN(score) FROM game_scores) LIMIT 1")
 
+    # obtain position of last inserted game_score
+    cur.execute("SELECT ROW_NUMBER() OVER (ORDER BY score DESC) FROM game_scores WHERE id = %d" % (last_insert_id))
+    res = cur.fetchone()
+    last_insert_row: int = res[0]
+
     commit_and_close(con)
+
+    return last_insert_row
 
 
 def is_highscore(game_id, score):
@@ -113,7 +127,7 @@ def test_db():
     cur.execute("INSERT INTO games VALUES ('%d','Duke Nukum II')" % (2))
     con.commit()
     
-    for i in range(1,50):
+    for i in range(MAX_SCORES_PER_GAME):
         cur.execute("""
             INSERT INTO game_scores 
                 VALUES (NULL, 1, %s, %d, datetime('now','localtime'))

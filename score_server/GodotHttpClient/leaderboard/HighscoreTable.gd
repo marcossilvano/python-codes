@@ -94,6 +94,7 @@ func get_entry_screen_position(row: int) -> Vector2:
 	var entries = get_tree().get_nodes_in_group("highscore_entry")
 
 	if row > entries.size() or row < 0:
+		_show_error("Invalid table row: " + str(row))
 		return Vector2.ZERO
 
 	var pos = entries[row].get_position()
@@ -108,21 +109,4 @@ func set_highlight(row: int) -> void:
 		return
 	
 	target_entry = entries[row]
-	#var tween := create_tween().set_trans(Tween.TRANS_QUINT)
-	#tween.tween_property(entries[row], "modulate", Color(1,0,0), 0.2)
-
-func _process(delta: float) -> void:
-	if not target_entry:
-		return
-
-	var color: Color = target_entry.modulate
-	color.g += color_offset * delta
-	
-	if color.g > 1:
-		color.g = 1
-		color_offset = -color_offset
-	elif color.g < 0:	
-		color.g = 0
-		color_offset = -color_offset
-	
-	target_entry.modulate = color#colorColor(1,0,0)
+	target_entry.play_focus_animation()

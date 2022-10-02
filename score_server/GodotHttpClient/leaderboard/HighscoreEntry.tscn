@@ -1,7 +1,39 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://leaderboard/PixelFont.tres" type="DynamicFont" id=1]
 [ext_resource path="res://leaderboard/HighscoreEntry.gd" type="Script" id=2]
+
+[sub_resource type="Animation" id=1]
+resource_name = "NewHighscore"
+length = 0.4
+loop = true
+tracks/0/type = "value"
+tracks/0/path = NodePath("PanelContainer:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.2, 0.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ), Color( 0.72549, 0, 1, 1 ), Color( 1, 1, 1, 1 ) ]
+}
+
+[sub_resource type="Animation" id=2]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("PanelContainer:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Color( 1, 1, 1, 1 ) ]
+}
 
 [node name="Entry" type="Control" groups=["highscore_entry"]]
 anchor_right = 1.0
@@ -63,3 +95,7 @@ size_flags_stretch_ratio = 1.5
 custom_fonts/font = ExtResource( 1 )
 text = "09/set"
 align = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/NewHighscore = SubResource( 1 )
+anims/RESET = SubResource( 2 )
