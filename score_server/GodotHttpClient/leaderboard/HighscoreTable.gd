@@ -1,7 +1,7 @@
 class_name HighscoreTable
 extends VBoxContainer
 
-signal request_completed
+signal table_loaded
 
 export var address: String = "http://127.0.0.1:5000"
 export var game_id: int = 1
@@ -11,6 +11,7 @@ export var entry_scene: PackedScene
 var target_entry: HighscoreEntry
 var color_offset: float = 10
 
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	$PanelPadding.visible = false
@@ -18,7 +19,7 @@ func _ready():
 	# remove placeholder entries
 	get_tree().call_group("highscore_entry", "queue_free")
 	
-	$HTTPRequest.connect("request_completed", self, "_on_request_completed")
+	$ScoreServerHttpRequest.connect("request_completed", self, "_on_request_completed")
 	_make_request()
 
 
@@ -37,11 +38,8 @@ func _make_request() -> void:
 	
 	_log("request: " + url + ", json: " + json_str)
 	
-	# Add 'Content-Type' header:
-	var headers = ["Content-Type: application/json"]
-	
-	$HTTPRequest.request(url, headers, false, HTTPClient.METHOD_POST, json_str)	
-	
+	$ScoreServerHttpRequest.make_request(url, json_str)		
+
 
 func _show_error(msg: String) -> String:
 	$LabelError.visible = true
@@ -49,30 +47,11 @@ func _show_error(msg: String) -> String:
 	return msg
 
 
-func _on_request_completed(result, response_code, headers, body):
-	_log("response: " + str(response_code)) #+ ", json: " + body.get_string_from_utf8())
-	
-	var res_str: String
-	
-	if response_code == 200:
-		var parsed_json: JSONParseResult = JSON.parse(body.get_string_from_utf8())
-		
-		if parsed_json.error == OK:
-			# check for parse format and error
-			if typeof(parsed_json.result) == TYPE_DICTIONARY:
-				res_str = parsed_json.result['status']		
-				_fill_score_table(parsed_json.result['data'])
-			else:
-				res_str = _show_error("JSON response should be a dictionary or an array")
-		else:
-			res_str = _show_error("JSON parse error")
-	else:
-		res_str = _show_error("The requested URL could not be retrieved")
-		
-	_log("result: " + res_str)
-	
-	emit_signal("request_completed")
-	
+func _on_request_completed(json_dict: Dictionary) -> void:
+	if json_dict:
+		_fill_score_table(json_dict['data'])
+	emit_signal("table_loaded")
+
 
 func _fill_score_table(scores: Array) -> void:
 	#var scene: PackedScene = preload("res://leaderboard/HighscoreEntry.tscn")
@@ -89,7 +68,8 @@ func _fill_score_table(scores: Array) -> void:
 		add_child(padding)
 	
 	#_log(scores)
-	
+
+
 func get_entry_screen_position(row: int) -> Vector2:
 	var entries = get_tree().get_nodes_in_group("highscore_entry")
 

@@ -18,10 +18,16 @@ _global_script_classes=[ {
 "class": "HighscoreTable",
 "language": "GDScript",
 "path": "res://leaderboard/HighscoreTable.gd"
+}, {
+"base": "Node",
+"class": "ScoreServerHttpRequest",
+"language": "GDScript",
+"path": "res://ScoreServerHttpRequest.gd"
 } ]
 _global_script_class_icons={
 "HighscoreEntry": "",
-"HighscoreTable": ""
+"HighscoreTable": "",
+"ScoreServerHttpRequest": ""
 }
 
 [application]
