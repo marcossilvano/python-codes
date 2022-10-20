@@ -14,8 +14,6 @@ var color_offset: float = 10
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	$PanelPadding.visible = false
-	
 	# remove placeholder entries
 	get_tree().call_group("highscore_entry", "queue_free")
 	
@@ -63,10 +61,6 @@ func _fill_score_table(scores: Array) -> void:
 		order += 1
 		add_child(entry)
 		
-		var padding = $PanelPadding.duplicate()
-		padding.visible = true
-		add_child(padding)
-	
 	#_log(scores)
 
 
