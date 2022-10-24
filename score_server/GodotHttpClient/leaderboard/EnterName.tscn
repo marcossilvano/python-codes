@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://fonts/upheaval/upheavtt.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://leaderboard/EnterName.gd" type="Script" id=2]
+[ext_resource path="res://leaderboard/LetterButton.tscn" type="PackedScene" id=3]
 
 [sub_resource type="DynamicFont" id=1]
 resource_local_to_scene = true
@@ -21,6 +22,7 @@ font_data = ExtResource( 1 )
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 2 )
+letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_+-!?#@*"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 margin_left = 128.0
@@ -45,52 +47,24 @@ margin_bottom = 182.0
 custom_constants/separation = 5
 alignment = 1
 
-[node name="Button1" type="Button" parent="VBoxContainer/HBoxContainer" groups=["button_letter"]]
-modulate = Color( 1, 1, 1, 0.498039 )
-margin_left = 122.0
-margin_right = 197.0
-margin_bottom = 82.0
-rect_min_size = Vector2( 75, 0 )
+[node name="Button1" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 162.0
+margin_right = 237.0
+focus_neighbour_left = NodePath("../Button4")
 custom_fonts/font = SubResource( 2 )
-text = "A"
-icon_align = 1
 
-[node name="Button2" type="Button" parent="VBoxContainer/HBoxContainer" groups=["button_letter"]]
-modulate = Color( 1, 1, 1, 0.498039 )
-margin_left = 202.0
-margin_right = 277.0
-margin_bottom = 82.0
-rect_min_size = Vector2( 75, 0 )
+[node name="Button2" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 242.0
+margin_right = 317.0
 custom_fonts/font = SubResource( 2 )
-text = "A"
-icon_align = 1
 
-[node name="Button3" type="Button" parent="VBoxContainer/HBoxContainer" groups=["button_letter"]]
-modulate = Color( 1, 1, 1, 0.498039 )
-margin_left = 282.0
-margin_right = 357.0
-margin_bottom = 82.0
-rect_min_size = Vector2( 75, 0 )
+[node name="Button3" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 322.0
+margin_right = 397.0
 custom_fonts/font = SubResource( 2 )
-text = "A"
-icon_align = 1
 
-[node name="Button4" type="Button" parent="VBoxContainer/HBoxContainer" groups=["button_letter"]]
-modulate = Color( 1, 1, 1, 0.498039 )
-margin_left = 362.0
-margin_right = 437.0
-margin_bottom = 82.0
-rect_min_size = Vector2( 75, 0 )
+[node name="Button4" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 402.0
+margin_right = 477.0
+focus_neighbour_right = NodePath("../Button1")
 custom_fonts/font = SubResource( 2 )
-text = "A"
-icon_align = 1
-
-[node name="Button5" type="Button" parent="VBoxContainer/HBoxContainer" groups=["button_letter"]]
-modulate = Color( 1, 1, 1, 0.498039 )
-margin_left = 442.0
-margin_right = 517.0
-margin_bottom = 82.0
-rect_min_size = Vector2( 75, 0 )
-custom_fonts/font = SubResource( 2 )
-text = "A"
-icon_align = 1
