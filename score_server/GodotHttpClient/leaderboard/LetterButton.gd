@@ -3,9 +3,10 @@ extends Button
 
 
 export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var current_letter = 0
+var current_letter: int = 0
 var original_color: Color
 var press_delay: float = 0
+var click_count: int = 0
 
 onready var arrow_up = $ArrowUp
 onready var arrow_down = $ArrowDown
@@ -42,6 +43,7 @@ func set_selected(selected: bool):
 
 func _on_Button_focus_entered():
 	press_delay = 0
+	click_count = 0
 	set_selected(true)
 	
 	
@@ -66,19 +68,35 @@ func reached_press_delay() -> bool:
 	
 	# time needed to hold the key so the letters will start rolling
 	if (press_delay > 1.5):
-		press_delay -= 1
+		press_delay -= 1.5
 		return true
 	
 	return false
+
+
+func send_inputkey_event(scancode: int) -> void:
+	var ev: InputEventKey = InputEventKey.new()
+	ev.scancode = scancode
+	ev.pressed = true
+	Input.parse_input_event(ev)	
 
 
 func _on_Button_gui_input(event: InputEvent) -> void:
 	if !has_focus():
 		return
 	
+	if event is InputEventKey and not event.is_pressed():
+		var letter: String = OS.get_scancode_string(event.scancode)
+				
+		if letter in letters:
+			current_letter = letters.find(letter)
+			send_inputkey_event(KEY_RIGHT)
+	
 	# mouse clicked
-	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT && event.is_pressed():
-		current_letter += 1
+	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT and event.is_pressed():
+		if click_count > 0:
+			current_letter += 1
+		click_count += 1
 	
 	if Input.is_action_pressed("ui_up"):
 		if reached_press_delay():
@@ -87,7 +105,7 @@ func _on_Button_gui_input(event: InputEvent) -> void:
 		if reached_press_delay():
 			current_letter += 1
 	else:
-		press_delay = 0
+		press_delay = 0.0
 
 	current_letter = wrap_around(current_letter, 0, len(letters)-1)
 	text = letters[current_letter]
