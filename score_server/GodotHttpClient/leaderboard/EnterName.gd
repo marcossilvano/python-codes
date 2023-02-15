@@ -5,7 +5,7 @@ export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?#@"
 var nick_name: String
 var buttons: Array
 
-# Called when the node enters the scene tree for the first time.
+
 func _ready():
 	buttons = get_tree().get_nodes_in_group("button_letter")
 	
@@ -19,4 +19,3 @@ func build_nick_from_buttons() -> void:
 	nick_name = ""
 	for btn in buttons:
 		nick_name += btn.text
-	
