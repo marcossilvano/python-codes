@@ -48,23 +48,28 @@ custom_constants/separation = 5
 alignment = 1
 
 [node name="Button1" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
-margin_left = 162.0
-margin_right = 237.0
+margin_left = 122.0
+margin_right = 197.0
 focus_neighbour_left = NodePath("../Button4")
 custom_fonts/font = SubResource( 2 )
 
 [node name="Button2" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
-margin_left = 242.0
-margin_right = 317.0
+margin_left = 202.0
+margin_right = 277.0
 custom_fonts/font = SubResource( 2 )
 
 [node name="Button3" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
-margin_left = 322.0
-margin_right = 397.0
+margin_left = 282.0
+margin_right = 357.0
+custom_fonts/font = SubResource( 2 )
+
+[node name="Button5" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
+margin_left = 362.0
+margin_right = 437.0
 custom_fonts/font = SubResource( 2 )
 
 [node name="Button4" parent="VBoxContainer/HBoxContainer" instance=ExtResource( 3 )]
-margin_left = 402.0
-margin_right = 477.0
+margin_left = 442.0
+margin_right = 517.0
 focus_neighbour_right = NodePath("../Button1")
 custom_fonts/font = SubResource( 2 )
