@@ -26,7 +26,7 @@ STATE_DEAD  = 1
 MOVE_H = 0
 MOVE_V = 1
 
-ANIM_MOVEMENT = 0
+ANIM_MOVE = 0
 ANIM_EXPLODE  = 1
 ANIM_HIT      = 2
 ANIM_LEFT     = 3
@@ -58,7 +58,7 @@ class Animation:
     time_count  = 0
     curr_frame = 1
     curr_anim = 0
-    anims = None
+    anims: dict = None
 
 class GameObject:
     x = 0
@@ -82,6 +82,11 @@ class GameObject:
     fire_count = 0
     fire_count_max = 0
 
+class Background:
+    scroll = 0
+    scroll_speed = 0
+    texture = None
+
 # ------ Globals --------
 
 ship: GameObject = None
@@ -100,7 +105,6 @@ def should_quit():
             return True
         
     return False
-
 
 def create_game_object(x, y, speed_x, speed_y, scale, width, height, health, image_path: str):
     obj: GameObject = GameObject()
@@ -122,7 +126,8 @@ def create_game_object(x, y, speed_x, speed_y, scale, width, height, health, ima
     obj.health = health
 
     obj.anim = Animation()
-    obj.anim.anims = []
+    obj.anim.curr_anim = ANIM_MOVE
+    obj.anim.anims = {}
     obj.anim.frame_duration = 0.3
     #obj.anim.total_frames = obj.texture.get_rect().width // width
 
@@ -130,12 +135,10 @@ def create_game_object(x, y, speed_x, speed_y, scale, width, height, health, ima
 
     return obj
 
-
 def scale_object(obj, scale=1):
     obj.texture = pygame.transform.scale_by(obj.texture, scale)
     obj.width *= scale
     obj.height*= scale
-
 
 def clamp(value, min, max):
     new_value = value
@@ -150,7 +153,6 @@ def clamp(value, min, max):
 
     return (new_value, overflow)
 
-
 def keep_inside_bounds(obj):
     check_x = clamp(obj.x, obj.min_x, obj.max_x)
     obj.x = check_x[0]
@@ -160,16 +162,14 @@ def keep_inside_bounds(obj):
 
     return (check_x[1],check_y[1])
 
-
-def set_animation(obj: GameObject, anim: int):
+def set_animation(obj: GameObject, anim: str):
     # reassure anim index is ok
-    anim = min(anim, len(obj.anim.anims))
+    #anim = min(anim, len(obj.anim.anims))
 
     obj.anim.curr_anim = anim
     obj.anim.curr_frame = 1
     obj.anim.time_count = 0
     obj.anim.frame_duration = obj.anim.anims[anim][0] # first position cotains delay
-
 
 def check_collision(obj1: GameObject, obj2: GameObject):
     if obj1.state == STATE_DEAD or obj2.state == STATE_DEAD:
@@ -187,12 +187,10 @@ def check_collision(obj1: GameObject, obj2: GameObject):
     r1 = pygame.Rect(obj1.x - obj1.width//2, obj1.y - obj1.height//2, obj1.width, obj1.height)
     r2 = pygame.Rect(obj2.x - obj2.width//2, obj2.y - obj2.height//2, obj2.width, obj2.height)
 
-    if r1.x < (r2.x + r2.width-1)  and r2.x < (r1.x + r1.width-1) and \
-       r1.y < (r2.y + r2.height-1) and r2.y < (r1.y + r1.height-1):
+    if r1.left < r2.right and r2.left < r1.right and r1.top < r2.bottom and r2.top < r1.bottom:
         return True
 
     return False
-
 
 def hit_game_object(obj: GameObject):
     obj.health -= 1
@@ -201,7 +199,6 @@ def hit_game_object(obj: GameObject):
         obj.state = STATE_DEAD
     else:
         set_animation(obj, ANIM_HIT)
-
 
 def check_collision_lists(bul_list, list2):
     for bul in bul_list:
@@ -213,37 +210,38 @@ def check_collision_lists(bul_list, list2):
             
     return False
 
-
 def blit_game_object(screen: pygame.Surface, obj: GameObject, dt: float):
     has_ended = False
     
+    animation = obj.anim.anims[obj.anim.curr_anim]
+
     # animate
     obj.anim.time_count += dt
     if obj.anim.time_count >= obj.anim.frame_duration:
         obj.anim.time_count -= obj.anim.frame_duration
         obj.anim.curr_frame += 1
-        if obj.anim.curr_frame == len(obj.anim.anims[obj.anim.curr_anim]):
+        if obj.anim.curr_frame == len(animation):
             obj.anim.curr_frame = 1
 
     # one-shot animation
-    frame = obj.anim.anims[obj.anim.curr_anim][obj.anim.curr_frame]
+    frame = animation[obj.anim.curr_frame]
     if frame == FRAME_STOP:
         obj.anim.curr_frame -= 1
         has_ended = True
 
     # return to animation
     elif frame == FRAME_RTA:
-        next_anim = obj.anim.anims[obj.anim.curr_anim][obj.anim.curr_frame+1]
+        next_anim = animation[obj.anim.curr_frame+1]
         set_animation(obj, next_anim)
+        animation = obj.anim.anims[obj.anim.curr_anim]
 
     # draw
-    offset = obj.anim.anims[obj.anim.curr_anim][obj.anim.curr_frame]
+    offset = animation[obj.anim.curr_frame]
     pos = (obj.x - obj.width//2, obj.y - obj.height//2)
     clip = (offset * obj.width,0,obj.width,obj.height)
     screen.blit(obj.texture, pos, clip)
 
     return has_ended
-
 
 def blit_list(screen, list, dt):
     for obj in list.copy(): 
@@ -255,39 +253,37 @@ def blit_list(screen, list, dt):
 
 def create_bullet(x, y, speed_y, texture):
     bullet = create_game_object(x, y, 0, speed_y, 1.5, 10, 15, 1, texture)
-    bullet.anim.anims.append([0.05,0,1]) # ANIM_MOVEMENT
-    bullet.anim.anims.append([0.05,2,3,4,FRAME_STOP]) # ANIM_EXPLODE (-1=one shot)
+    bullet.anim.anims[ANIM_MOVE]    = [0.05,0,1]
+    bullet.anim.anims[ANIM_EXPLODE] = [0.05,2,3,4,FRAME_STOP]
     return bullet
-
 
 def create_ship() -> GameObject:
     ship = create_game_object((WIDTH-64)/2, HEIGHT-50, SHIP_SPEED, 0, 1.5, 32, 32, 3, "textures/ship_32x32.png")
     ship.min_x = 100
     ship.max_x = WIDTH-100
     ship.fire_count_max = 0.5
-    ship.anim.anims.append([1.0,0])                                     # ANIM_MOVEMENT
-    ship.anim.anims.append([0.05,3,4,5,6,7,8])                          # ANIM_EXPLOSION
-    ship.anim.anims.append([0.05,9,0,9,0,9,0,FRAME_RTA,ANIM_MOVEMENT])  # ANIM_HIT
-    ship.anim.anims.append([1.0,1])                                     # ANIM_LEFT
-    ship.anim.anims.append([1.0,2])                                     # ANIM_RIGHT
+    ship.anim.anims[ANIM_MOVE]    = [1.0,0]
+    ship.anim.anims[ANIM_EXPLODE] = [0.05,3,4,5,6,7,8]
+    ship.anim.anims[ANIM_HIT]     = [0.05,9,0,9,0,9,0,FRAME_RTA,ANIM_MOVE]
+    ship.anim.anims[ANIM_LEFT]    = [1.0,1]
+    ship.anim.anims[ANIM_RIGHT]   = [1.0,2]
     return ship
 
-
 def create_enemy(x, y, fire_delay, health, scale, texture):
-    en = create_game_object(x, y, 100, 100, scale, 32, 32, health, texture)
+    en = create_game_object(x, y, 300, 100, scale, 32, 32, health, texture)
     en.min_x = en.x - 300
     en.max_x = en.x + 300
     en.fire_count_max = fire_delay
-    en.anim.anims.append([0.3,0,1])        # ANIM_MOVEMENT
-    en.anim.anims.append([0.05,2,3,4,5,FRAME_STOP]) # ANIM_EXPLOSION (-1=one shot)
-    en.anim.anims.append([0.05,0,6,0,6,0,6,FRAME_RTA,ANIM_MOVEMENT]) # ANIM_EXPLOSION (-1=one shot)
+    en.anim.anims[ANIM_MOVE]    = [0.3,0,1]
+    en.anim.anims[ANIM_EXPLODE] = [0.05,2,3,4,5,FRAME_STOP]
+    en.anim.anims[ANIM_HIT]     = [0.05,0,6,0,6,0,6,FRAME_RTA,ANIM_MOVE]
     return en
 
 def create_shield(x, y):
     shield = create_game_object(x, y, 0, 0, 1.0, 50, 50, 3, "textures/shield_50x50.png")
-    shield.anim.anims.append([1.0,0])       # ANIM_MOVEMENT
-    shield.anim.anims.append([0.05,1,2,3,FRAME_STOP])# ANIM_EXPLOSION
-    shield.anim.anims.append([0.05,1,4,1,4,1,4,FRAME_RTA,ANIM_MOVEMENT])# ANIM_EXPLOSION
+    shield.anim.anims[ANIM_MOVE]    = [1.0,0]
+    shield.anim.anims[ANIM_EXPLODE] = [0.05,1,2,3,FRAME_STOP]
+    shield.anim.anims[ANIM_HIT]     = [0.05,1,4,1,4,1,4,FRAME_RTA,ANIM_MOVE]
     return shield
 
 def init_map(current_level):
@@ -330,7 +326,7 @@ def update_ship(keys, dt):
 
     if ship.anim.curr_anim != ANIM_HIT:
         if ship.speed_x == 0:
-            set_animation(ship, ANIM_MOVEMENT)
+            set_animation(ship, ANIM_MOVE)
         elif ship.speed_x > 0:
             set_animation(ship, ANIM_RIGHT)
         elif ship.speed_x < 0:
@@ -345,7 +341,6 @@ def update_ship(keys, dt):
     ship.x = ship.x + ship.speed_x * dt
 
     keep_inside_bounds(ship)
-
 
 def update_enemies(dt):
     global enemies
@@ -377,7 +372,6 @@ def update_enemies(dt):
             if random.randint(1,5) == 1:
                 bullets_enem.append(create_bullet(en.x, en.y, 300, "textures/bullet_enemy_10x15.png"))
 
-
 def update_bullets(bullets, dt):
     for bul in bullets:
         if bul.state == STATE_DEAD: 
@@ -388,6 +382,21 @@ def update_bullets(bullets, dt):
         bounds = keep_inside_bounds(bul)
         if bounds[1]:
             bullets.remove(bul)
+
+def blit_background(screen: pygame.Surface, bg: Background, dt: float):
+    for i in range (0,2):
+        screen.blit(bg.texture, (bg.texture.get_width()*i + bg.scroll, 0))
+    bg.scroll -= bg.scroll_speed * dt
+    if bg.scroll < -bg.texture.get_width():
+        bg.scroll = 0
+
+def create_background(texture, scroll_speed):
+    bg: Background = Background()
+    bg.texture = pygame.image.load(texture)
+    bg.texture = pygame.transform.scale_by(bg.texture, WIDTH/bg.texture.get_width())
+    bg.scroll = 0
+    bg.scroll_speed = scroll_speed
+    return bg
 
 # ----------- MAIN --------------
 
@@ -402,6 +411,9 @@ def main():
     ship = create_ship()
     ships.append(ship)
     init_map(level)
+
+    bg1 = create_background("textures/background_stars.png", 20)
+    bg2 = create_background("textures/background_stars_fg.png", 60)
 
     clock = pygame.time.Clock()
 
@@ -432,13 +444,15 @@ def main():
         # --- Render Frame ---
         screen.fill(COLOR_BLACK)
 
+        blit_background(screen, bg1, dt)
+        blit_background(screen, bg2, dt)
         blit_list(screen, bullets_ship, dt)
         blit_list(screen, bullets_enem, dt)
         blit_game_object(screen, ship, dt)
         blit_list(screen, enemies, dt)
         blit_list(screen, shields, dt)
 
-        text_fps = font.render('FPS: %d  Enemies: %d' % (clock.get_fps(), len(enemies)), False, COLOR_GREEN)
+        text_fps = font.render('FPS: %d  Enemies: %d  Health: %d' % (clock.get_fps(), len(enemies), ship.health), False, COLOR_GREEN)
         screen.blit(text_fps, text_rect)
         pygame.display.flip()
 
@@ -449,6 +463,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 '''
