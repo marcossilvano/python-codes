@@ -8,7 +8,7 @@ Add PyGame lib includes into Pylance extra paths
     ../../venv-pygame/lib/python3.10/site-packages
 '''
 
-import sys, pygame, time, copy
+import sys, pygame, random
 
 # ----- Constants -------
 
@@ -28,11 +28,15 @@ MOVE_V = 1
 
 ANIM_MOVEMENT = 0
 ANIM_EXPLODE  = 1
-ANIM_LEFT     = 1
-ANIM_RIGHT    = 2
+ANIM_HIT      = 2
+ANIM_LEFT     = 3
+ANIM_RIGHT    = 4
+
+FRAME_STOP = -1
+FRAME_RTA  = -2
 
 TAG_SHIP  = 0
-TAG_ENEMY = 0
+TAG_ENEMY = 1
 
 levels=[
 """  
@@ -40,7 +44,7 @@ levels=[
        X X   X X  
          x x x 
        x x   x x
-     x x       x x
+     o o o o o o o
 
 
      bbb  bbb  bbb
@@ -50,10 +54,9 @@ levels=[
 # ------ Classes ---------
 
 class Animation:
-    total_frames = 0
     frame_duration = 0
     time_count  = 0
-    curr_frame = 0
+    curr_frame = 1
     curr_anim = 0
     anims = None
 
@@ -77,13 +80,17 @@ class GameObject:
 
     tag = 0
     fire_count = 0
+    fire_count_max = 0
 
 # ------ Globals --------
 
 ship: GameObject = None
-enemies: list = None
-bullets: list = None
-shields: list = None
+ships: list = []
+enemies: list = []
+bullets_ship: list = []
+bullets_enem: list = []
+shields: list = []
+textures: list = {}
 
 # ------- Logic ---------
 
@@ -95,33 +102,29 @@ def should_quit():
     return False
 
 
-def get_time() -> None:
-    time_curr = time.time() * 1000
-    time_delay = 1000/60 - (time_curr - time_prev)
-    time_prev = time_curr
-    time_delay = max(int(time_delay), 0)
-
-
-def create_game_object(x: int, y: int, scale: float, width, height,
-                       texture: str = "", surface: pygame.Surface = None) -> GameObject:
+def create_game_object(x, y, speed_x, speed_y, scale, width, height, health, image_path: str):
     obj: GameObject = GameObject()
-    if texture != "":
-        obj.texture = pygame.image.load(texture)
-    else:
-        obj.texture = surface
-    obj.rect = obj.texture.get_rect()
-    
+
+    global textures
+    if image_path not in textures:
+        textures[image_path] = pygame.image.load(image_path)    # textures cache (only load once)
+    obj.texture = textures[image_path]
+
+    #obj.texture = pygame.image.load(image_path)
     obj.x = x
     obj.y = y
+    obj.speed_x = speed_x
+    obj.speed_y = speed_y
     obj.min_x = 0
     obj.max_x = WIDTH
     obj.width = width
     obj.height = height
+    obj.health = health
 
     obj.anim = Animation()
     obj.anim.anims = []
     obj.anim.frame_duration = 0.3
-    obj.anim.total_frames = obj.texture.get_rect().width // width
+    #obj.anim.total_frames = obj.texture.get_rect().width // width
 
     scale_object(obj, scale)
 
@@ -134,27 +137,28 @@ def scale_object(obj, scale=1):
     obj.height*= scale
 
 
-def keep_inside_bounds(obj):
-    x_border = False
-    y_border = False
-
-    # limites X customizados
-    if obj.x < obj.min_x:
-        obj.x = obj.min_x
-        x_border = True
-    elif obj.x > obj.max_x:
-        obj.x = obj.max_x
-        x_border = True
+def clamp(value, min, max):
+    new_value = value
+    overflow = False
     
-    # limites Y da tela
-    if obj.y < 0:
-        obj.y = 0
-        y_border = True
-    elif obj.y > HEIGHT - obj.height:
-        obj.y = HEIGHT - obj.height
-        y_border = True
+    if value < min:
+        new_value = min
+        overflow = True
+    elif value > max:
+        new_value = max
+        overflow = True
 
-    return (x_border,y_border)
+    return (new_value, overflow)
+
+
+def keep_inside_bounds(obj):
+    check_x = clamp(obj.x, obj.min_x, obj.max_x)
+    obj.x = check_x[0]
+    
+    check_y = clamp(obj.y, 0, HEIGHT - obj.height)
+    obj.y = check_y[0]
+
+    return (check_x[1],check_y[1])
 
 
 def set_animation(obj: GameObject, anim: int):
@@ -162,8 +166,9 @@ def set_animation(obj: GameObject, anim: int):
     anim = min(anim, len(obj.anim.anims))
 
     obj.anim.curr_anim = anim
-    obj.anim.curr_frame = 0
+    obj.anim.curr_frame = 1
     obj.anim.time_count = 0
+    obj.anim.frame_duration = obj.anim.anims[anim][0] # first position cotains delay
 
 
 def check_collision(obj1: GameObject, obj2: GameObject):
@@ -189,20 +194,21 @@ def check_collision(obj1: GameObject, obj2: GameObject):
     return False
 
 
-def check_collision_lists(list1, list2):
-    for obj1 in list1:
-        for obj2 in list2:
-            if obj1.state == STATE_DEAD:
-                continue
+def hit_game_object(obj: GameObject):
+    obj.health -= 1
+    if obj.health <= 0:
+        set_animation(obj, ANIM_EXPLODE)
+        obj.state = STATE_DEAD
+    else:
+        set_animation(obj, ANIM_HIT)
 
-            if check_collision(obj1, obj2):
-                set_animation(obj1, ANIM_EXPLODE)
-                obj1.state = STATE_DEAD
-                obj1.anim.frame_duration = 0.05
-                
-                set_animation(obj2, ANIM_EXPLODE)
-                obj2.state = STATE_DEAD
-                obj2.anim.frame_duration = 0.05
+
+def check_collision_lists(bul_list, list2):
+    for bul in bul_list:
+        for obj2 in list2:
+            if check_collision(bul, obj2):
+                hit_game_object(bul)
+                hit_game_object(obj2)
                 return True
             
     return False
@@ -216,14 +222,21 @@ def blit_game_object(screen: pygame.Surface, obj: GameObject, dt: float):
     if obj.anim.time_count >= obj.anim.frame_duration:
         obj.anim.time_count -= obj.anim.frame_duration
         obj.anim.curr_frame += 1
-        obj.anim.curr_frame %= len(obj.anim.anims[obj.anim.curr_anim])
+        if obj.anim.curr_frame == len(obj.anim.anims[obj.anim.curr_anim]):
+            obj.anim.curr_frame = 1
 
-    # draw
+    # one-shot animation
     frame = obj.anim.anims[obj.anim.curr_anim][obj.anim.curr_frame]
-    if frame == -1:
+    if frame == FRAME_STOP:
         obj.anim.curr_frame -= 1
         has_ended = True
 
+    # return to animation
+    elif frame == FRAME_RTA:
+        next_anim = obj.anim.anims[obj.anim.curr_anim][obj.anim.curr_frame+1]
+        set_animation(obj, next_anim)
+
+    # draw
     offset = obj.anim.anims[obj.anim.curr_anim][obj.anim.curr_frame]
     pos = (obj.x - obj.width//2, obj.y - obj.height//2)
     clip = (offset * obj.width,0,obj.width,obj.height)
@@ -240,45 +253,42 @@ def blit_list(screen, list, dt):
 
 #---- Create Entities ----
 
-def create_bullet(x, y, speed_y, tag):
-    bullet = create_game_object(x, y, 1.5, 10, 15, "textures/bullet_10x15.png")
-    bullet.speed_x = 0
-    bullet.speed_y = speed_y
-    bullet.tag = tag
-    bullet.anim.frame_duration = 0.05
-    bullet.anim.anims.append([0,1]) # ANIM_MOVEMENT
-    bullet.anim.anims.append([2,3,4,-1]) # ANIM_EXPLODE (-1=one shot)
-    set_animation(bullet, ANIM_MOVEMENT)
-
+def create_bullet(x, y, speed_y, texture):
+    bullet = create_game_object(x, y, 0, speed_y, 1.5, 10, 15, 1, texture)
+    bullet.anim.anims.append([0.05,0,1]) # ANIM_MOVEMENT
+    bullet.anim.anims.append([0.05,2,3,4,FRAME_STOP]) # ANIM_EXPLODE (-1=one shot)
     return bullet
 
 
 def create_ship() -> GameObject:
-    ship = create_game_object((WIDTH-64)/2, HEIGHT-50, 1.5, 32, 32, "textures/ship_32x32.png")
-    ship.speed_x = SHIP_SPEED
-    ship.speed_y = SHIP_SPEED
+    ship = create_game_object((WIDTH-64)/2, HEIGHT-50, SHIP_SPEED, 0, 1.5, 32, 32, 3, "textures/ship_32x32.png")
     ship.min_x = 100
     ship.max_x = WIDTH-100
-    ship.anim.anims.append([0]) # ANIM_MOVEMENT
-    ship.anim.anims.append([1]) # ANIM_LEFT
-    ship.anim.anims.append([2]) # ANIM_RIGHT
-    set_animation(ship, ANIM_MOVEMENT)
-    
+    ship.fire_count_max = 0.5
+    ship.anim.anims.append([1.0,0])                                     # ANIM_MOVEMENT
+    ship.anim.anims.append([0.05,3,4,5,6,7,8])                          # ANIM_EXPLOSION
+    ship.anim.anims.append([0.05,9,0,9,0,9,0,FRAME_RTA,ANIM_MOVEMENT])  # ANIM_HIT
+    ship.anim.anims.append([1.0,1])                                     # ANIM_LEFT
+    ship.anim.anims.append([1.0,2])                                     # ANIM_RIGHT
     return ship
 
 
-def create_enemy(x, y, scale, surf):
-    en = create_game_object(x, y, scale, 32, 32, surface=surf)
-    en.speed_x = 100
-    en.speed_y = 100
+def create_enemy(x, y, fire_delay, health, scale, texture):
+    en = create_game_object(x, y, 100, 100, scale, 32, 32, health, texture)
     en.min_x = en.x - 300
     en.max_x = en.x + 300
-    en.anim.anims.append([0,1]) # ANIM_MOVEMENT
-    en.anim.anims.append([2,3,4,5,-1]) # ANIM_EXPLOSION (-1=one shot)
-    set_animation(en, ANIM_MOVEMENT)
-
+    en.fire_count_max = fire_delay
+    en.anim.anims.append([0.3,0,1])        # ANIM_MOVEMENT
+    en.anim.anims.append([0.05,2,3,4,5,FRAME_STOP]) # ANIM_EXPLOSION (-1=one shot)
+    en.anim.anims.append([0.05,0,6,0,6,0,6,FRAME_RTA,ANIM_MOVEMENT]) # ANIM_EXPLOSION (-1=one shot)
     return en
 
+def create_shield(x, y):
+    shield = create_game_object(x, y, 0, 0, 1.0, 50, 50, 3, "textures/shield_50x50.png")
+    shield.anim.anims.append([1.0,0])       # ANIM_MOVEMENT
+    shield.anim.anims.append([0.05,1,2,3,FRAME_STOP])# ANIM_EXPLOSION
+    shield.anim.anims.append([0.05,1,4,1,4,1,4,FRAME_RTA,ANIM_MOVEMENT])# ANIM_EXPLOSION
+    return shield
 
 def init_map(current_level):
     global enemies
@@ -287,29 +297,21 @@ def init_map(current_level):
     padding_x = 50
     padding_y = 70
 
-    enemy_texture = pygame.image.load("textures/enemy_purple_32x32.png")
-    shield_texture= pygame.image.load("textures/shield_50x50.png")
-
-    row = 0
-    col = 0
+    row, col = 0, 0
     level_str = levels[current_level]
-    
+
     # cria os inimigos baseado no mapa do level
     for ch in level_str:
+        x = col*padding_x + padding_x/2
+        y = row*padding_y
         match ch:
+            case 'o': enemies.append(create_enemy(x, y, 0.5, 1, 1.0, "textures/enemy_purple_32x32.png"))
+            case 'x': enemies.append(create_enemy(x, y, 1.0, 2, 1.5, "textures/enemy_purple_32x32.png"))
+            case 'X': enemies.append(create_enemy(x, y, 2.0, 4, 2.0, "textures/enemy_purple_32x32.png"))
+            case 'b': shields.append(create_shield(x, y))
             case '\n': 
                 row += 1
                 col = 0
-            case 'x':
-                enemies.append(create_enemy(col*padding_x + padding_x/2, row*padding_y, 1.5, enemy_texture))
-            case 'X':
-                enemies.append(create_enemy(col*padding_x + padding_x/2, row*padding_y, 2.0, enemy_texture))
-            case 'b':
-                shield = create_game_object(col*padding_x + padding_x/2, row*padding_y, 1.0, 50, 50, surface=shield_texture)
-                shield.anim.anims.append([0]) #ANIM_MOVEMENT
-                shield.anim.anims.append([1,2,3,-1]) #ANIM_EXPLOSION
-                shields.append(shield)
-
         col += 1
 
 #----- Update Entities Logic -----
@@ -321,20 +323,24 @@ def update_ship(keys, dt):
         return
     
     ship.speed_x = 0
-    set_animation(ship, ANIM_MOVEMENT)
-    
     if keys[pygame.K_d]:
         ship.speed_x = SHIP_SPEED
-        set_animation(ship, ANIM_RIGHT)
     elif keys[pygame.K_a]:
         ship.speed_x = -SHIP_SPEED
-        set_animation(ship, ANIM_LEFT)
+
+    if ship.anim.curr_anim != ANIM_HIT:
+        if ship.speed_x == 0:
+            set_animation(ship, ANIM_MOVEMENT)
+        elif ship.speed_x > 0:
+            set_animation(ship, ANIM_RIGHT)
+        elif ship.speed_x < 0:
+            set_animation(ship, ANIM_LEFT)
 
     ship.fire_count += dt
     if keys[pygame.K_w]:
-        if ship.fire_count >= 0.3:
+        if ship.fire_count >= ship.fire_count_max:
             ship.fire_count = 0
-            bullets.append(create_bullet(ship.x, ship.y, -700, TAG_ENEMY))
+            bullets_ship.append(create_bullet(ship.x, ship.y, -700, "textures/bullet_10x15.png"))
 
     ship.x = ship.x + ship.speed_x * dt
 
@@ -365,10 +371,14 @@ def update_enemies(dt):
                 en.move_count = 0
                 en.move = MOVE_H
 
+        en.fire_count += dt
+        if en.fire_count >= en.fire_count_max:
+            en.fire_count = 0
+            if random.randint(1,5) == 1:
+                bullets_enem.append(create_bullet(en.x, en.y, 300, "textures/bullet_enemy_10x15.png"))
 
-def update_bullets(dt):
-    global bullets
 
+def update_bullets(bullets, dt):
     for bul in bullets:
         if bul.state == STATE_DEAD: 
             continue
@@ -386,20 +396,14 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN | pygame.SCALED)
     pygame.display.set_caption("Ball PyGame Example")
     
-    global ship 
-    global enemies
-    global bullets
-    global shields
+    global ship, enemies, bullets_ship, bullets_enem, shields
 
     level = 0
     ship = create_ship()
-    enemies = []
-    shields = []
+    ships.append(ship)
     init_map(level)
-    bullets = []
 
     clock = pygame.time.Clock()
-    time_prev = time.time() * 1000
 
     font = pygame.font.Font('Coders_Crux.ttf', 32)
     text_fps = font.render('HUD', False, COLOR_GREEN)
@@ -407,44 +411,50 @@ def main():
     text_rect.topleft = (10,10)
     dt = 0
 
-    rotation = 0.0
-
     # Game Loop
     while not should_quit():
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]: break
-        #get_time()
 
         # --- Update Logic ---
         update_ship(keys, dt)
         update_enemies(dt)
-        update_bullets(dt)
+        update_bullets(bullets_ship, dt)
+        update_bullets(bullets_enem, dt)
 
         # ---- Collisions ----
-        check_collision_lists(bullets, shields)
-        check_collision_lists(bullets, enemies)
+        check_collision_lists(bullets_ship, shields)
+        check_collision_lists(bullets_enem, shields)
+        check_collision_lists(bullets_ship, enemies)
+        check_collision_lists(bullets_enem, ships)
+        check_collision_lists(enemies, ships)
 
         # --- Render Frame ---
         screen.fill(COLOR_BLACK)
 
-        blit_list(screen, bullets, dt)
+        blit_list(screen, bullets_ship, dt)
+        blit_list(screen, bullets_enem, dt)
         blit_game_object(screen, ship, dt)
         blit_list(screen, enemies, dt)
         blit_list(screen, shields, dt)
 
-        text_fps = font.render('FPS: %d  Enemies: %d  Bulles: %d ' %
-                               (clock.get_fps(), len(enemies), len(bullets)), 
-                               False, COLOR_GREEN)
+        text_fps = font.render('FPS: %d  Enemies: %d' % (clock.get_fps(), len(enemies)), False, COLOR_GREEN)
         screen.blit(text_fps, text_rect)
-        
         pygame.display.flip()
 
         # --- Keep Sync ---
         dt = clock.tick()/1000 # (60)
-        #pygame.time.delay(time_delay)
 
     sys.exit()
 
-
 if __name__ == '__main__':
     main()
+
+
+'''
+def get_time() -> None:
+    time_curr = time.time() * 1000
+    time_delay = 1000/60 - (time_curr - time_prev)
+    time_prev = time_curr
+    time_delay = max(int(time_delay), 0)
+'''
