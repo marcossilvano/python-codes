@@ -106,15 +106,20 @@ def should_quit():
         
     return False
 
+def load_image(image_path: str, has_alpha: bool = True) -> pygame.Surface:
+    global textures
+    if image_path not in textures:
+        if has_alpha:
+            textures[image_path] = pygame.image.load(image_path).convert_alpha()    # textures cache (only load once)
+        else:
+            textures[image_path] = pygame.image.load(image_path).convert()
+
+    return textures[image_path]
+
 def create_game_object(x, y, speed_x, speed_y, scale, width, height, health, image_path: str):
     obj: GameObject = GameObject()
 
-    global textures
-    if image_path not in textures:
-        textures[image_path] = pygame.image.load(image_path)    # textures cache (only load once)
-    obj.texture = textures[image_path]
-
-    #obj.texture = pygame.image.load(image_path)
+    obj.texture = load_image(image_path)
     obj.x = x
     obj.y = y
     obj.speed_x = speed_x
@@ -210,6 +215,21 @@ def check_collision_lists(bul_list, list2):
             
     return False
 
+def create_background(texture, scroll_speed, has_alpha = True):
+    bg: Background = Background()
+    bg.texture = load_image(texture, has_alpha)
+    bg.texture = pygame.transform.scale_by(bg.texture, WIDTH/bg.texture.get_width())
+    bg.scroll = 0
+    bg.scroll_speed = scroll_speed
+    return bg
+
+def blit_background(screen: pygame.Surface, bg: Background, dt: float):
+    for i in range (0,2):
+        screen.blit(bg.texture, (bg.texture.get_width()*i + bg.scroll, 0))
+    bg.scroll -= bg.scroll_speed * dt
+    if bg.scroll < -bg.texture.get_width():
+        bg.scroll = 0
+
 def blit_game_object(screen: pygame.Surface, obj: GameObject, dt: float):
     has_ended = False
     
@@ -270,7 +290,7 @@ def create_ship() -> GameObject:
     return ship
 
 def create_enemy(x, y, fire_delay, health, scale, texture):
-    en = create_game_object(x, y, 300, 100, scale, 32, 32, health, texture)
+    en = create_game_object(x, y, 100, 100, scale, 32, 32, health, texture)
     en.min_x = en.x - 300
     en.max_x = en.x + 300
     en.fire_count_max = fire_delay
@@ -383,22 +403,12 @@ def update_bullets(bullets, dt):
         if bounds[1]:
             bullets.remove(bul)
 
-def blit_background(screen: pygame.Surface, bg: Background, dt: float):
-    for i in range (0,2):
-        screen.blit(bg.texture, (bg.texture.get_width()*i + bg.scroll, 0))
-    bg.scroll -= bg.scroll_speed * dt
-    if bg.scroll < -bg.texture.get_width():
-        bg.scroll = 0
-
-def create_background(texture, scroll_speed):
-    bg: Background = Background()
-    bg.texture = pygame.image.load(texture)
-    bg.texture = pygame.transform.scale_by(bg.texture, WIDTH/bg.texture.get_width())
-    bg.scroll = 0
-    bg.scroll_speed = scroll_speed
-    return bg
-
 # ----------- MAIN --------------
+
+def print_flags(surf: pygame.Surface):
+    flags = surf.get_flags()
+    print('Surface in vram') if flags & 0x00000001 else print('Surface in vram')
+    print('Blit in hardware') if flags & 0x00000100 else print('Blit in software')
 
 def main():
     pygame.init()
@@ -412,16 +422,18 @@ def main():
     ships.append(ship)
     init_map(level)
 
-    bg1 = create_background("textures/background_stars.png", 20)
+    bg1 = create_background("textures/background_stars.png", 20, False)
     bg2 = create_background("textures/background_stars_fg.png", 60)
 
     clock = pygame.time.Clock()
 
     font = pygame.font.Font('Coders_Crux.ttf', 32)
-    text_fps = font.render('HUD', False, COLOR_GREEN)
+    text_fps = font.render('HUD', False, COLOR_GREEN).convert_alpha()
     text_rect= text_fps.get_rect()
     text_rect.topleft = (10,10)
     dt = 0
+
+    print_flags(bg1.texture)
 
     # Game Loop
     while not should_quit():
