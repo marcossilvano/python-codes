@@ -28,7 +28,6 @@ def run_tests(cmd: str, execs: int):
         exec_time = run_process(cmd)
         all_times.append(exec_time)
 
-    print("Number of tests:", execs)
     print("Total execution time...: %.3fs" % sum(all_times))
     print("Average execution time.: %.3fs" % (sum(all_times)/len(all_times)))
     print("Standard deviation.....: %.3fs" % statistics.pstdev(all_times))
@@ -39,20 +38,30 @@ def run_tests(cmd: str, execs: int):
 def main():
     n = len(sys.argv)
 
-    if (n != 2):
-        print("usage: python run.py number_of_executions")
+    if (n != 3):
+        print("usage: python run.py final_number number_of_tests")
         exit()
 
-    execs = int(sys.argv[1])
+    final = int(sys.argv[1])
+    tests = int(sys.argv[2])
 
     print("\nPERFORMANCE TEST")
-    print("Running a program that finds all prime numbers up to 500000:")
+    print("Find all prime numbers up to %d:" % final)
+    print("Running %d tests on %s" % (tests, sys.platform))
+
+    cmd_cpp = ""
+    if sys.platform == "win32":
+        cmd_cpp = ".\\a.exe %d"
+    elif sys.platform == "linux":
+        cmd_cpp = "./a.out %d"
+    else:
+        return
 
     print("\nRUNNING PYTHON PROGRAM")
-    run_tests("python3 find_primes.py", execs)
+    run_tests("python3 find_primes.py %d" % final, tests)
 
     print("\nRUNNING C++ PROGRAM")
-    run_tests("./a.out", execs)
+    run_tests(cmd_cpp % final, tests)
 
 
 if __name__ == "__main__":

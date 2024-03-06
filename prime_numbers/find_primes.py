@@ -3,6 +3,7 @@
 # https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
 
 from math import isqrt
+import sys
 
 def find_primes(n: int):
     numbers: list[int] = [0] * (n+1)
@@ -32,10 +33,12 @@ def print_vector(vec: list[int]):
 
 
 def main():
-    # for i in range(100):
-    #     find_primes(5000)
-    find_primes(500000)
+    if (len(sys.argv) != 2):
+        print("usage: python find_primes.py final_number")
+        exit()
+
+    find_primes(int(sys.argv[1]))
 
 if __name__ == "__main__":
-        main()
+    main()
 
