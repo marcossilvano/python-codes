@@ -10,10 +10,7 @@ using namespace std;
 void print_vector(int vec[], int n);
 
 void find_primes(int n) {
-    int numbers[n+1] = {0};
-    // for (int i = 0; i < n+1; i++) {
-    //     numbers[i] = 0;
-    // }    
+    int* numbers = new int[n+1]();
     
     int num = 2;
 
@@ -29,6 +26,7 @@ void find_primes(int n) {
     }
 
     //print_vector(numbers, n+1);
+    delete[] numbers;
 }
 
 void print_vector(int vec[], int n) {
@@ -43,9 +41,14 @@ void print_vector(int vec[], int n) {
 }
 
 
-int main() {
-    // for (int i = 0; i < 100; i++)
-    //     find_primes(5000);
-    find_primes(500000);
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        printf("usage: find_primes final_number\n");
+        return 1;
+    }
+
+    find_primes(atoi(argv[1]));
+
+    return 0;
 }
 
