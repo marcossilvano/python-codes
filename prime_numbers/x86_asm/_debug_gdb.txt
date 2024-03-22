@@ -1,0 +1,19 @@
+[1] montar com parâmetro -gdwarf no masm
+
+[2] chamar gdb no executável
+
+[3] comandos gerais gdb:
+  layout src                        shows source code as it is executed
+  layout asm                        shows asm source and opcodes
+  set disassembly-flavor intel      shows the above in intel flavor
+  info/layout reg                   show registers content
+  run                               start debugging
+  step, next, break, continue       control flow of execution
+  maint info breakpoints            show breakpoints
+
+[4] para começar
+$ layout asm                        mostra codigo asm
+$ layout regs                       mostra registradores
+$ b [label]                         adicionar breakpoint no label
+$ run
+$ s/step

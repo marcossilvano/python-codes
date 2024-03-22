@@ -14,7 +14,7 @@ void find_primes(int n) {
     
     int num = 2;
 
-    while (num < (int)sqrt(n) + 1) {
+    while (num < (int)sqrt(n) + 1) { // num < n/2?
         if (numbers[num] == 0) {
             int multi = num*num;
             while (multi < n+1) {
