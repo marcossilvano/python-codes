@@ -2,15 +2,14 @@
 // Utiliza o algoritmo Sieves of Eratosthenes
 // https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes
 
-#include <iostream>
-#include <cmath>
-
-using namespace std;
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 void print_vector(int vec[], int n);
 
 void find_primes(int n) {
-    int* numbers = new int[n+1]();
+    int* numbers = malloc(sizeof(int) * (n+1));
     
     int num = 2;
 
@@ -26,7 +25,7 @@ void find_primes(int n) {
     }
 
     //print_vector(numbers, n+1);
-    delete[] numbers;
+    free(numbers);
 }
 
 void print_vector(int vec[], int n) {

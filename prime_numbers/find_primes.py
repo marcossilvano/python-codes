@@ -10,9 +10,9 @@ def find_primes(n: int):
     
     num: int = 2
 
-    while num < isqrt(n) + 1:
+    while num < n/2:#isqrt(n) + 1:
         if numbers[num] == 0:
-            multi = num*num
+            multi = num*2#num
             while multi < n+1:
                 numbers[multi] = 1
                 multi += num

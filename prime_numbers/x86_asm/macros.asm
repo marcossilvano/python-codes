@@ -9,6 +9,10 @@
     int 0x80
 %endmacro
 
+; ---------------------------------------------------------
+; DATA DEFINITION HELPERS
+; ---------------------------------------------------------
+
 ; Macro: Define String
 ;   %1 symbol name
 ;   %2 string
@@ -16,6 +20,10 @@
     %1 db  %2
     %1.len equ $ - %1
 %endmacro
+
+; ---------------------------------------------------------
+; OLD PRINT STRING UTILITIES
+; ---------------------------------------------------------
 
 ; Macro: Initialize array with number
 ; Stack paramaters:
