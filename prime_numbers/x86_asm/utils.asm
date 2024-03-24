@@ -88,14 +88,48 @@ fun_int_to_str:
     pop_ebp
     ret
 
-; Print an array of positive integers
+
+; Print an array of positive integers of 8 bits
 ; ----------------------------------------------
 ; Stack Paramaters:
 ;   %1 Array address
 ;   %2 Array length (in bytes)
-;   %3 Element length (int bytes)
-fun_print_array:
-    params .vec, .len, .step
+fun_print_array_byte:
+    params .vec, .len
+
+    %define .idx ebx
+    %define .adr ecx
+
+    push_ebp
+    ; push_locals
+    push_regs ebx, ecx, edx
+   
+    mov .adr, .vec
+    mov .idx, 0
+    xor edx, edx         ; clear edx
+.loop:
+    mov dl, [.adr+.idx]
+    print_intsp edx
+    inc .idx
+
+    cmp .idx, .len
+    jl .loop
+    ; end loop
+
+    println
+
+    pop_regs ebx, ecx, edx
+    ; pop_locals
+    pop_ebp
+    ret
+
+; Print an array of positive integers of 32 bits
+; ----------------------------------------------
+; Stack Paramaters:
+;   %1 Array address
+;   %2 Array length (in bytes)
+fun_print_array_dword:
+    params .vecd, .lend
 
     %define .idx ebx
     %define .adr ecx
@@ -104,13 +138,13 @@ fun_print_array:
     ; push_locals
     push_regs ebx, ecx
    
-    mov .adr, .vec
+    mov .adr, .vecd
     mov .idx, 0
 .loop:
     print_intsp dword [.adr+.idx]
-    add .idx, .step
+    add .idx, 4
 
-    cmp .idx, .len
+    cmp .idx, .lend
     jl .loop
     ; end loop
 
