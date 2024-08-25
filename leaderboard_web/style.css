@@ -1,0 +1,69 @@
+@keyframes scrollBackground{
+    from {
+        background-position: center top;
+    }
+    to {
+        background-position: center bottom;
+    }
+}
+
+@font-face {
+    font-family: 'VT323';
+    src: url('VT323-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body{
+    background-image: url("images/highscore-bg.png");
+    background-size: cover;
+    background-repeat: repeat-y;
+    background-position: center top;
+    background-attachment: scroll;
+    /* animation: scrollBackground 5s linear infinite; */
+    height: 100vh;
+    margin: 0;
+    font-family: "VT323";
+}
+
+.billboard{
+    position: fixed;
+    top: 0;
+    left: auto;
+    z-index: 11;
+}
+
+table{
+    font-size: 22pt;
+    font-weight: bold;
+    border-collapse: collapse;
+}
+
+td{
+    color: white;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+.table_cell{
+    padding-top: 0px;
+}
+
+.custom-table {
+    width: 60%; /* Set the table width to 60% of the viewport */
+    z-index: 10;
+}
+
+.scrolling-image {
+    position: absolute;
+    will-change: transform; /* Optimizes animation performance */
+    animation: scrollImage 13.5s linear forwards;
+    bottom: 0;
+    z-index: 9;
+}
+
+@keyframes scrollImage {
+    from { transform: translateY(0); }
+    to { transform: translateY(-110vh); }
+}
+
+

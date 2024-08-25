@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        document.documentElement.style.overflow = 'hidden'; // For the entire page
+        //document.body.style.overflow = 'hidden'; // Also apply to body
+
+        function handleFullscreenChange() {
+            if (document.fullscreenElement) {
+                document.body.style.animationPlayState = 'running';
+            } else {
+                document.body.style.animationPlayState = 'running';
+            }
+        }
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+        function animateBackground() {
+            let yPos = 0;
+
+            function step() {
+                yPos -= 1;
+                document.body.style.backgroundPosition = `center ${yPos}px`;
+                requestAnimationFrame(step);
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        animateBackground();
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function createScrollingImage() {
+            const img = document.createElement('img');
+            img.src = "images/highscore_cone.png";
+            img.classList.add('scrolling-image');
+
+            // Set random position
+            //img.style.left = (4.785 * getRandomInt(1,18)) + 'vw';
+            positions = [
+            4.785, 9.75, 4.785*3 + 0.2, 4.785*4 + 0.3, 4.785*5 + 0.5,
+            4.785*6 + 0.7, 4.785*7 + 0.9, 4.785*8 + 1.1, 4.785*9 + 1.3,
+            4.785*10 + 1.8, 4.785*11 + 2.0, 4.785*12 + 2.2,
+            4.785*13 + 2.4, 4.785*14 + 2.6, 4.785*15 + 2.8, 
+            4.785*16 + 3.0, 4.785*17 + 3.2, 4.785*18 + 3.4];
+            pos_idx = Math.floor(Math.random() * positions.length)
+            img.style.left = positions[pos_idx] + 0.3  + "vw";
+            img.style.width = 'auto'; // Adjust the size as needed
+            img.style.height = 'auto'; // Maintain aspect ratio
+
+            // Append to the body
+            document.body.appendChild(img);
+
+            // Remove the image when it leaves the screen
+            img.addEventListener('animationend', () => {
+                img.remove();
+            });
+        }
+
+        // Create a new image every 3 seconds
+        setInterval(createScrollingImage, 3000 + (Math.random() * 1500));
+    
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="m-5">&nbsp;</h1>
+        <img src="images/highscore_billboard.png" class="billboard">
+        <div class="row justify-content-center">
+            <div class="custom-table">
+                <table width="60%" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th width="20%">Rank</th>
+                            <th width="40%">Nome</th>
+                            <th width="40%">Pontuação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Leaderboard data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fetchLeaderboard() {
+            $.ajax({
+                url: 'http://172.16.255.155:5000/get_leaderboard/1',
+                method: 'GET',
+                success: function(data) {
+                    data = JSON.parse(data).data;
+                    let leaderboardBody = $('#leaderboard-body');
+                    leaderboardBody.empty();  // Clear the current data
+
+                    data.forEach((entry, index) => {
+                        leaderboardBody.append(`
+                            <tr>
+                                <td class="py-0">${index + 1}</td>
+                                <td class="py-0">${entry.name}</td>
+                                <td class="py-0">${entry.score}</td>
+                            </tr>
+                        `);
+                    });
+                }
+            });
+        }
+
+        // Fetch leaderboard every 5 seconds
+        setInterval(fetchLeaderboard, 5000);
+
+        // Initial fetch
+        fetchLeaderboard();
+    </script>
+</body>
+</html>
