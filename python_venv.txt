@@ -49,3 +49,6 @@ $ FLASK_ENV=development flask run
 Flash 2.2.X
 $ flask --app app run
 $ flask --app app --debug run
+
+
+Caso queira acessar de outras máquinas, usar --host=0.0.0.0

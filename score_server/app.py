@@ -3,9 +3,14 @@ from flask import Flask
 import json
 from data_base import *
 from flask import request
+from flask_cors import CORS
+from utils import verify_hmac
+
+SECRET_KEY="Optachiibas"
 
 app = Flask(__name__)
 
+CORS(app)
 
 def decode_post_and_call(request_handler):
     json_dict = {}
@@ -24,11 +29,23 @@ def decode_post_and_call(request_handler):
 def send_score_POST():   
     return decode_post_and_call(send_score_GET)
 
+def check_hash(key : str, hash : str, *data):
+    data = "".join([str(i) for i in data])
+    if not verify_hmac(data, key, hash):
+        return json.dumps({
+            'status' : 'fail',
+            'data' : 'invalid request!'
+        })
+    return None
 
-@app.get("/send_score/<int:game_id>/<string:nick>/<int:score>")
-def send_score_GET(game_id: int, nick: str, score: int):
+@app.get("/send_score/<int:game_id>/<string:nick>/<int:score>/<string:hash>")
+def send_score_GET(game_id: int, nick: str, score: int, hash : str):
     game_id = int(game_id)
     score = int(score)
+    
+    hash_error = check_hash(SECRET_KEY, hash, game_id, nick, score)
+    if hash_error is not None:
+        return hash_error
 
     if is_highscore(game_id, score):
         last_insert_row = save_score(game_id, nick, score)
