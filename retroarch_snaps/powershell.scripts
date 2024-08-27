@@ -1,0 +1,8 @@
+# POWER SHELL COMMANDS
+#------------------------------------------
+
+# RENAME ALL FILES, REMOVING "&"
+Get-ChildItem -File -Recurse | Rename-Item -NewName { $_.Name -replace "&"," " }
+
+# RENAME ALL FILES, ADDING A SUFFIX
+Get-ChildItem -File -Recurse | Rename-Item -NewName {$_.Basename + '-image' + $_.Extension}
