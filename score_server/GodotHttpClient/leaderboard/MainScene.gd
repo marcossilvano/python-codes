@@ -1,21 +1,21 @@
 extends Control
 
 
-export var inputscore_scene: PackedScene
-export var scoretable_scene: PackedScene
-export var speed_scale: float = 1
-export var focus_on_row: int = 20
+@export var inputscore_scene: PackedScene
+@export var scoretable_scene: PackedScene
+@export var speed_scale: float = 1
+@export var focus_on_row: int = 20
 
 var current_scene: Node
-onready var camera: Camera2D = $Camera2D
-onready var timer: Timer = $Timer
+@onready var camera: Camera2D = $Camera2D
+@onready var timer: Timer = $Timer
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	current_scene = scoretable_scene.instance()
+	current_scene = scoretable_scene.instantiate()
 	add_child(current_scene)
-	current_scene.connect("table_loaded", self, "_on_table_loaded")
+	current_scene.connect("table_loaded", Callable(self, "_on_table_loaded"))
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -30,7 +30,7 @@ func _on_table_loaded() -> void:
 	current_scene.set_highlight(focus_on_row)
 	
 	# wait 1 sec
-	timer.connect("timeout", self, "start_camera")
+	timer.connect("timeout", Callable(self, "start_camera"))
 	timer.set_wait_time(1)
 	timer.start()
 
@@ -42,8 +42,8 @@ func start_camera() -> void:
 	target_position.y -= screen_height/2
 
 	# camera should not move beyond last score entry
-	if target_position.y > (current_scene.rect_size.y - screen_height + 50):
-		target_position.y = current_scene.rect_size.y - screen_height + 50
+	if target_position.y > (current_scene.size.y - screen_height + 50):
+		target_position.y = current_scene.size.y - screen_height + 50
 		
 	#print("TABLE SIZE Y: " + str(current_scene.rect_size.y))
 

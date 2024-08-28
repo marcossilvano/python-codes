@@ -41,6 +41,17 @@ echo $PATH                                       (check path)
 export PATH="/home/marcos/.local/bin:$PATH"      (add Flask to PATH)
 
 -------------------------------------------
+VENV WINDOWS 10
+https://www.youtube.com/watch?v=ii1zfI-gTv4
+
+creating 	python -m venv venv (in project folder)
+activating	venv\Scripts\activate.bat
+listing		pip list
+saving		pip freeze > requirements.txt
+restoring	pip install -r requirements.txt
+deactivating	deactivate
+
+-------------------------------------------
 FLASK: RUN
 
 Flask 2.0.3

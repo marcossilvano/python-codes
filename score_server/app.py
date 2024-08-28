@@ -47,6 +47,8 @@ def send_score_GET(game_id: int, nick: str, score: int, hash : str):
     if hash_error is not None:
         return hash_error
 
+    nick = nick.replace('%', ' ')
+    print(nick)
     if is_highscore(game_id, score):
         last_insert_row = save_score(game_id, nick, score)
         return json.dumps({

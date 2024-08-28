@@ -1,6 +1,6 @@
 extends Control
 
-export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+@export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 var nick: Array
 
 var original_color: Color
@@ -17,7 +17,7 @@ func _ready():
 	for btn in buttons:
 		#btn.connect("focus_entered", self, "button_focus_entered")
 		#btn.connect("gui_input", self, "button_gui_input")
-		btn.connect("gui_input", self, "_on_gui_input")
+		btn.connect("gui_input", Callable(self, "_on_gui_input"))
 		nick.append(0)
 		
 	original_color = buttons[0].modulate

@@ -63,8 +63,8 @@ def save_score(game_id, nick, score):
     # remove row with smaller score if table size exceeds MAX_SCORE_PER_GAME
     cur.execute("SELECT COUNT(*) FROM game_scores")
     res = cur.fetchone()
-    if res[0] > MAX_SCORES_PER_GAME:
-        cur.execute("DELETE FROM game_scores WHERE score = (SELECT MIN(score) FROM game_scores) LIMIT 1")
+#    if res[0] > MAX_SCORES_PER_GAME:
+#        cur.execute("DELETE FROM game_scores WHERE score = (SELECT MIN(score) FROM game_scores) LIMIT 1")
 
     # obtain position of last inserted game_score
     cur.execute("SELECT ROW_NUMBER() OVER (ORDER BY score DESC) FROM game_scores WHERE id = %d" % (last_insert_id))
