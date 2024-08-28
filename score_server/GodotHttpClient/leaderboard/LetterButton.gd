@@ -2,15 +2,15 @@ class_name LetterButton
 extends Button
 
 
-export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+@export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 var current_letter: int = 0
 var original_color: Color
 var press_delay: float = 0
 var click_count: int = 0
 
-onready var arrow_up = $ArrowUp
-onready var arrow_down = $ArrowDown
-onready var animation_player = $AnimationPlayer
+@onready var arrow_up = $ArrowUp
+@onready var arrow_down = $ArrowDown
+@onready var animation_player = $AnimationPlayer
 
 
 # Called when the node enters the scene tree for the first time.
@@ -74,10 +74,10 @@ func reached_press_delay() -> bool:
 	return false
 
 
-func send_inputkey_event(scancode: int) -> void:
+func send_inputkey_event(keycode: int) -> void:
 	var ev: InputEventKey = InputEventKey.new()
-	ev.scancode = scancode
-	ev.pressed = true
+	ev.keycode = keycode
+	ev.button_pressed = true
 	Input.parse_input_event(ev)	
 
 
@@ -86,14 +86,14 @@ func _on_Button_gui_input(event: InputEvent) -> void:
 		return
 	
 	if event is InputEventKey and not event.is_pressed():
-		var letter: String = OS.get_scancode_string(event.scancode)
+		var letter: String = OS.get_keycode_string(event.keycode)
 				
 		if letter in letters:
 			current_letter = letters.find(letter)
 			send_inputkey_event(KEY_RIGHT)
 	
 	# mouse clicked
-	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT and event.is_pressed():
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
 		if click_count > 0:
 			current_letter += 1
 		click_count += 1

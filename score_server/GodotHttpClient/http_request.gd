@@ -1,16 +1,16 @@
 extends Node2D
 
-onready var address: TextEdit = $CanvasLayer/TextAddress
-onready var response: TextEdit = $CanvasLayer/TextResponse
+@onready var address: TextEdit = $CanvasLayer/TextAddress
+@onready var response: TextEdit = $CanvasLayer/TextResponse
 
-onready var send_game_id: TextEdit = $CanvasLayer/TextGameId
-onready var send_nick: TextEdit = $CanvasLayer/TextNick
-onready var send_score: TextEdit = $CanvasLayer/TextScore
+@onready var send_game_id: TextEdit = $CanvasLayer/TextGameId
+@onready var send_nick: TextEdit = $CanvasLayer/TextNick
+@onready var send_score: TextEdit = $CanvasLayer/TextScore
 
 var _url: String
 
 func _ready():
-	$HTTPRequest.connect("request_completed", self, "_on_request_completed")
+	$HTTPRequest.connect("request_completed", Callable(self, "_on_request_completed"))
 
 
 func _on_request_completed(result, response_code, headers, body):
@@ -18,7 +18,9 @@ func _on_request_completed(result, response_code, headers, body):
 	
 	var res_str: String
 	if response_code == 200:
-		var parsed_json: JSONParseResult = JSON.parse(body.get_string_from_utf8())
+		var test_json_conv = JSON.new()
+		test_json_conv.parse(body.get_string_from_utf8())
+		var parsed_json: JSON = test_json_conv.get_data()
 		
 		if parsed_json.error == OK:
 			#parsed_json = JSON.parse('{"status": "success"}')
@@ -60,7 +62,7 @@ func _send_score_POST() -> void:
 	_url = address.text + '/send_score'
 
 	# Convert data to json string:
-	var json_str: String = JSON.print({
+	var json_str: String = JSON.stringify({
 		"game_id": int(send_game_id.text),
 		"nick": nick,
 		"score": int(send_score.text)

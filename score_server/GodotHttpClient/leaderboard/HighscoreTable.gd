@@ -3,10 +3,10 @@ extends VBoxContainer
 
 signal table_loaded
 
-export var address: String = "http://127.0.0.1:5000"
-export var game_id: int = 1
+@export var address: String = "http://127.0.0.1:5000"
+@export var game_id: int = 1
 #export (String, FILE, "*.tscn") var entry_scn_path: String = "res://leaderboard/HighscoreEntry.tscn"
-export var entry_scene: PackedScene
+@export var entry_scene: PackedScene
 
 var target_entry: HighscoreEntry
 var color_offset: float = 10
@@ -17,7 +17,7 @@ func _ready():
 	# remove placeholder entries
 	get_tree().call_group("highscore_entry", "queue_free")
 	
-	$ScoreServerHttpRequest.connect("request_completed", self, "_on_request_completed")
+	$ScoreServerHttpRequest.connect("request_completed", Callable(self, "_on_request_completed"))
 	_make_request()
 
 
@@ -30,7 +30,7 @@ func _make_request() -> void:
 	var url: String = address + '/get_leaderboard'
 
 	# Convert data to json string:
-	var json_str: String = JSON.print({
+	var json_str: String = JSON.stringify({
 		"game_id": game_id
 	})
 	
@@ -56,7 +56,7 @@ func _fill_score_table(scores: Array) -> void:
 	
 	var order: int = 1
 	for score in scores:
-		var entry: HighscoreEntry = entry_scene.instance()
+		var entry: HighscoreEntry = entry_scene.instantiate()
 		entry.set_values(order, score['name'], score['score'], "09/set")#score['date'])
 		order += 1
 		add_child(entry)

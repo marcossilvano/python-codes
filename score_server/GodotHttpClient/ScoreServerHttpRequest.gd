@@ -4,7 +4,7 @@ extends Node
 signal request_completed(json_dict)
 
 func _ready() -> void:
-	$HTTPRequest.connect("request_completed", self, "_on_request_completed")	
+	$HTTPRequest.connect("request_completed", Callable(self, "_on_request_completed"))	
 
 func _log(text) -> void:
 	print(str(text))
@@ -27,7 +27,9 @@ func _on_request_completed(result, response_code, headers, body):
 	var res_str: String
 	
 	if response_code == 200:
-		var parsed_json: JSONParseResult = JSON.parse(body.get_string_from_utf8())
+		var test_json_conv = JSON.new()
+		test_json_conv.parse(body.get_string_from_utf8())
+		var parsed_json: JSON = test_json_conv.get_data()
 		
 		if parsed_json.error == OK:
 			# check for parse format and error

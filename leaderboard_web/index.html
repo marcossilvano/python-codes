@@ -80,9 +80,9 @@
                 <table width="60%" class="table table-striped">
                     <thead>
                         <tr>
-                            <th width="20%">Rank</th>
-                            <th width="40%">Nome</th>
-                            <th width="40%">Pontuação</th>
+                            <th width="15%">Rank</th>
+                            <th width="60%">Nome</th>
+                            <th width="25%">Pontuação</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard-body">
@@ -96,7 +96,8 @@
     <script>
         function fetchLeaderboard() {
             $.ajax({
-                url: 'http://172.16.255.155:5000/get_leaderboard/1',
+                // url: 'http://172.16.255.155:5000/get_leaderboard/1',    // accessing Juliano's super server
+                url: 'http://127.0.0.1:5000//get_leaderboard/1',        // testing at home
                 method: 'GET',
                 success: function(data) {
                     data = JSON.parse(data).data;

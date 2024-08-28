@@ -1,6 +1,6 @@
 extends Control
 
-export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?#@"
+@export var letters: String = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?#@"
 
 var nick_name: String
 var buttons: Array
