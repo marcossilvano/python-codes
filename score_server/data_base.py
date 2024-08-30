@@ -48,28 +48,25 @@ def commit_and_close(con):
     con.commit()
     con.close()
 
-
 def save_score(game_id, nick, score):
     con, cur = get_connection()
-    #cur.execute("BEGIN TRANSACTION")
-    cur.execute("INSERT INTO game_scores VALUES (NULL, %d, '%s', %d, datetime('now','localtime'))" % (game_id, nick, score, ))
+
+    cur.execute("INSERT INTO game_scores (game_id, nickname, score, timestamp) VALUES (NULL, ?, ?, datetime('now','localtime'))", 
+                (game_id, nick, score))
     cur.execute("SELECT last_insert_rowid()")
     res = cur.fetchone()
     con.commit()
-    #cur.execute("COMMIT")
-    
-    last_insert_id: int = res[0]
+
+    last_insert_id = res[0]
 
     # remove row with smaller score if table size exceeds MAX_SCORE_PER_GAME
     cur.execute("SELECT COUNT(*) FROM game_scores")
     res = cur.fetchone()
-#    if res[0] > MAX_SCORES_PER_GAME:
-#        cur.execute("DELETE FROM game_scores WHERE score = (SELECT MIN(score) FROM game_scores) LIMIT 1")
 
     # obtain position of last inserted game_score
-    cur.execute("SELECT ROW_NUMBER() OVER (ORDER BY score DESC) FROM game_scores WHERE id = %d" % (last_insert_id))
+    cur.execute("SELECT ROW_NUMBER() OVER (ORDER BY score DESC) FROM game_scores WHERE id = ?", (last_insert_id,))
     res = cur.fetchone()
-    last_insert_row: int = res[0]
+    last_insert_row = res[0]
 
     commit_and_close(con)
 
@@ -81,14 +78,14 @@ def is_highscore(game_id, score):
 
     cur.execute("SELECT COUNT(*) FROM game_scores")
     res = cur.fetchone()
-    
+
     if res[0] < MAX_SCORES_PER_GAME:
         return True
 
-    cur.execute("SELECT MIN(score) FROM game_scores WHERE game_id = %d" % (game_id))
+    cur.execute("SELECT MIN(score) FROM game_scores WHERE game_id = ?", (game_id,))
     res = cur.fetchone()
     con.close()
-    
+
     return score > res[0]
 
 #    dict_list = []
@@ -104,10 +101,11 @@ def retrieve_leaderboard(game_id):
     con, cur = get_connection()
 
     cur.execute("""
-        SELECT nick, score, date
-            FROM game_scores
-            WHERE game_id=%d 
-            ORDER BY score DESC""" % (game_id))
+        SELECT nickname, score, timestamp
+        FROM game_scores
+        WHERE game_id = ?
+        ORDER BY score DESC
+    """, (game_id,))
 
     tup_list = cur.fetchall()
 
