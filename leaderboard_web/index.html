@@ -175,8 +175,7 @@
 
         function fetchLeaderboard() {
             $.ajax({
-                url: 'http://172.16.255.155:5000/get_leaderboard/1',    // accessing Juliano's super server
-                //url: 'http://127.0.0.1:5000//get_leaderboard/1',        // testing at home
+                url: 'http://200.134.18.85:51888/get_leaderboard/1',    // accessing Juliano's super server
                 method: 'GET',
                 success: function(data) {
                     data_txt = data
