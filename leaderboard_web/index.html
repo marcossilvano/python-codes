@@ -11,6 +11,9 @@
         document.documentElement.style.overflow = 'hidden'; // For the entire page
         //document.body.style.overflow = 'hidden'; // Also apply to body
 
+        var ult_data = null;
+        var AUTOSCROLL = true;
+
         function handleFullscreenChange() {
             if (document.fullscreenElement) {
                 document.body.style.animationPlayState = 'running';
@@ -94,13 +97,97 @@
     </div>
 
     <script>
+        function slowScrollTo(targetPosition, duration, callback) {
+            const startPosition = window.pageYOffset;
+            const distance = targetPosition - startPosition;
+            let startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const run = lerp(timeElapsed, startPosition, distance, duration);
+                window.scrollTo({top: run, behavior:"instant"});
+                if (timeElapsed < duration) {
+                    requestAnimationFrame(animation);
+                } else {
+                    window.scrollTo({top:targetPosition, behavior:"instant"}); // Ensure it reaches exactly the target
+                    if (callback) callback(); // Call the callback after scrolling is complete
+                }
+            }
+
+            function lerp(t, b, c, d) {
+                return c * (t / d) + b;
+            }
+
+            requestAnimationFrame(animation);
+        }
+
+        // function scrollLoop() {
+        //     const scrollDistance = 1000; // Distance to scroll (1000 pixels)
+        //     const scrollDuration = 5000; // Duration for each scroll (5 seconds)
+        //     const delayAtBottom = 2000;  // Delay at the bottom (2 seconds)
+        //     const delayAtTop = 2000;     // Delay at the top (2 seconds)
+
+        //     // Scroll down
+        //     slowScrollTo(scrollDistance, scrollDuration, () => {
+        //         // After reaching the bottom, wait for the specified delay
+        //         setTimeout(() => {
+        //             // Scroll back up after the delay at the bottom
+        //             slowScrollTo(-scrollDistance, scrollDuration, () => {
+        //                 // Wait for the specified delay at the top before scrolling down again
+        //                 setTimeout(scrollLoop, delayAtTop);
+        //             });
+        //         }, delayAtBottom);
+        //     });
+        // }
+
+        function scrollLoop() {
+            const stops = [200, 500, 800, 1200]; // Predetermined positions in pixels
+            const scrollDuration = 3000; // Duration for each scroll (3 seconds)
+            const delayAtStop = 2000;     // Delay at each stop (2 seconds)
+            const delayAtTop = 5000;      // Delay at the top before starting again (2 seconds)
+
+            function scrollToNextStop(index) {
+                if (index >= stops.length) {
+                    // After reaching the last stop, scroll all the way up
+                    slowScrollTo(0, scrollDuration, () => {
+                        setTimeout(() => {
+                            scrollToNextStop(0); // Restart the cycle from the first stop
+                        }, delayAtTop);
+                    });
+                } else {
+                    // Scroll to the next predetermined stop
+                    slowScrollTo(stops[index], scrollDuration, () => {
+                        setTimeout(() => {
+                            scrollToNextStop(index + 1); // Move to the next stop
+                        }, delayAtStop);
+                    });
+                }
+            }
+
+            // Start scrolling to the first stop
+            scrollToNextStop(0);
+        }
+
+
+        if(AUTOSCROLL)
+            scrollLoop();
+
         function fetchLeaderboard() {
             $.ajax({
-                // url: 'http://172.16.255.155:5000/get_leaderboard/1',    // accessing Juliano's super server
-                url: 'http://127.0.0.1:5000//get_leaderboard/1',        // testing at home
+                url: 'http://200.134.18.85:51888/get_leaderboard/1',    // accessing Juliano's super server
                 method: 'GET',
                 success: function(data) {
-                    data = JSON.parse(data).data;
+                    data_txt = data
+                    if (ult_data == data_txt) {
+                        console.log("dado não mudou.");
+                        return;
+                    }
+                    ult_data = data_txt;
+                    //scrollTo({top: 0, left: 0, behavior: 'instant'});
+                    //setInterval(scrollDown, 5000);
+                    
+                    data = JSON.parse(data_txt).data;
                     let leaderboardBody = $('#leaderboard-body');
                     leaderboardBody.empty();  // Clear the current data
 

@@ -6,11 +6,12 @@ from flask import request
 from flask_cors import CORS
 from utils import verify_hmac
 
-SECRET_KEY="Optachiibas"
-
 app = Flask(__name__)
 
 CORS(app)
+
+with open("secret.txt", "r") as f:
+    SECRET_KEY = f.readline().strip()
 
 def decode_post_and_call(request_handler):
     json_dict = {}

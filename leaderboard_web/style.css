@@ -41,7 +41,7 @@ table{
 
 td{
     color: white;
-    text-shadow: 2px 2px 4px #000000;
+    text-shadow: 2px 2px 0px black, -2px 2px 0px black, 2px -2px 0px black, -2px -2px 0px black;
 }
 
 .table_cell{
